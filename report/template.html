@@ -1,0 +1,458 @@
+<title>코스피 사이클 포착 지도</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@700&family=IBM+Plex+Sans+KR:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column (≈44rem) like a broker research note; charts and tables break out to the column width with their own scroll. */
+:root{
+  --bg:#f3f5f7; --surface:#ffffff; --ink:#14181d; --ink-2:#47505b; --muted:#6b7480; --rule:#d9dee4;
+  --accent:#0e6b66; --accent-soft:#e2f0ee;
+  --up:#cf3a32; --down:#2a66c8; --warn:#b26a00;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100; --s7:#6250d6; --grid:#e7ebef;
+  --band-up:rgba(207,58,50,.08); --band-alt:rgba(14,107,102,.07);
+  --f-display:"Gowun Batang","Noto Serif KR","Apple SD Gothic Neo",serif;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#111417; --surface:#181c20; --ink:#e9edf1; --ink-2:#b8c0c9; --muted:#8c96a1; --rule:#2c333a;
+  --accent:#4fb8b0; --accent-soft:#16302e;
+  --up:#f0675e; --down:#6b9ef0; --warn:#e3a33a;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s7:#9085e9; --grid:#252b31;
+  --band-up:rgba(240,103,94,.10); --band-alt:rgba(79,184,176,.09); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#111417; --surface:#181c20; --ink:#e9edf1; --ink-2:#b8c0c9; --muted:#8c96a1; --rule:#2c333a;
+  --accent:#4fb8b0; --accent-soft:#16302e;
+  --up:#f0675e; --down:#6b9ef0; --warn:#e3a33a;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s7:#9085e9; --grid:#252b31;
+  --band-up:rgba(240,103,94,.10); --band-alt:rgba(79,184,176,.09); color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.7;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 64px}
+body{word-break:keep-all;overflow-wrap:break-word}
+.wrap{max-width:46rem;margin:0 auto}
+header.top{padding-block:40px 24px;border-bottom:1px solid var(--rule)}
+.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;color:var(--accent);text-transform:uppercase}
+h1{font-family:var(--f-display);font-size:clamp(28px,6vw,40px);line-height:1.25;margin:8px 0 12px;text-wrap:balance;font-weight:700}
+h2{font-family:var(--f-display);font-size:clamp(22px,4.4vw,28px);line-height:1.3;margin:56px 0 12px;text-wrap:balance;font-weight:700}
+h3{font-size:17px;margin:28px 0 8px;font-weight:600}
+p{margin:0 0 14px;color:var(--ink)}
+.lede{color:var(--ink-2);font-size:16.5px}
+.meta{font-family:var(--f-mono);font-size:12.5px;color:var(--muted)}
+a{color:var(--accent)} a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+nav.toc{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:18px;font-size:14px}
+nav.toc a{text-decoration:none;border-bottom:1px solid var(--rule);color:var(--ink-2)}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:28px 0 8px}
+.tile{background:var(--surface);border:1px solid var(--rule);border-radius:6px;padding:14px 14px 12px;min-width:0}
+.tile .num{font-family:var(--f-mono);font-size:26px;font-weight:500;font-variant-numeric:tabular-nums;line-height:1.2}
+.tile .lab{font-size:13px;color:var(--ink-2);line-height:1.45;margin-top:4px}
+.up{color:var(--up)} .down{color:var(--down)}
+.chip{display:inline-block;font-family:var(--f-mono);font-size:11px;letter-spacing:.04em;padding:1px 6px;border-radius:3px;border:1px solid currentColor;vertical-align:2px;margin-right:6px;white-space:nowrap}
+.c-est{color:var(--accent)} .c-der{color:var(--s1)} .c-hyp{color:var(--warn)} .c-kill{color:var(--up)} .c-unr{color:var(--muted)}
+ol.key{padding-left:0;list-style:none;counter-reset:k;margin:0}
+ol.key li{counter-increment:k;display:grid;grid-template-columns:28px 1fr;gap:4px 8px;padding:12px 0;border-top:1px solid var(--rule)}
+ol.key li::before{content:counter(k);font-family:var(--f-mono);color:var(--muted);font-size:14px;padding-top:2px}
+ol.key li>div{min-width:0}
+figure{margin:20px 0 28px;background:var(--surface);border:1px solid var(--rule);border-radius:6px;padding:14px 12px 10px}
+figure .ct{font-weight:600;font-size:15px;margin:0 4px 2px}
+figure .cs{font-size:13px;color:var(--ink-2);margin:0 4px 8px}
+.chart{position:relative;height:300px;width:100%}
+.chart.tall{height:360px} .chart.short{height:240px}
+figcaption{font-size:12.5px;color:var(--muted);margin:8px 4px 0;line-height:1.55}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12.5px;color:var(--ink-2);margin:0 4px 6px}
+.legend i{display:inline-block;width:14px;height:3px;border-radius:2px;vertical-align:4px;margin-right:5px}
+.legend i.dot{width:9px;height:9px;border-radius:50%;vertical-align:0}
+.legend i.tri{width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-bottom:9px solid var(--s3);border-radius:0;background:none;vertical-align:0}
+.legend i.box{width:12px;height:10px;border-radius:2px;vertical-align:-1px}
+.tbl{overflow-x:auto;margin:14px 0 24px;border:1px solid var(--rule);border-radius:6px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:13.5px;line-height:1.5}
+th,td{padding:8px 10px;text-align:left;vertical-align:top;border-bottom:1px solid var(--rule)}
+th{font-weight:600;color:var(--ink-2);font-size:12.5px;background:var(--bg);white-space:nowrap}
+tr:last-child td{border-bottom:0}
+td.n,th.n{text-align:right;font-family:var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+td.nowrap{white-space:nowrap}
+table.heat td.h{text-align:right;font-family:var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap;
+  background:color-mix(in oklab, var(--hc) calc(var(--v) * 62%), var(--surface))}
+table.heat td.h.pos{--hc:var(--up)} table.heat td.h.neg{--hc:var(--down)}
+table.heat th.ph{white-space:normal;min-width:76px}
+.layer{border-left:3px solid var(--accent);padding:2px 0 2px 14px;margin:22px 0}
+.layer h3{margin-top:0}
+.status{font-family:var(--f-mono);font-size:12px;white-space:nowrap;padding:1px 6px;border-radius:3px}
+.st-no{color:var(--up);border:1px solid currentColor}
+.st-wait{color:var(--warn);border:1px solid currentColor}
+.st-yes{color:var(--accent);border:1px solid currentColor}
+.st-na{color:var(--muted);border:1px solid currentColor}
+.note{background:var(--accent-soft);border-radius:6px;padding:12px 14px;font-size:14.5px;margin:16px 0}
+.events{font-size:13px;color:var(--ink-2);columns:2 15rem;column-gap:24px;margin:8px 4px 0;padding-left:20px}
+.events li{break-inside:avoid;margin-bottom:2px}
+ul.plain{padding-left:20px} ul.plain li{margin-bottom:6px}
+.src{font-size:12.5px;color:var(--ink-2);word-break:break-all}
+.src li{margin-bottom:4px}
+footer{margin-top:48px;padding-top:16px;border-top:1px solid var(--rule)}
+@media (max-width:480px){ .chart{height:260px} .chart.tall{height:300px} th,td{padding:7px 8px} }
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">KOSPI 사이클 연구 노트 · 2026-11-02 · 데이터 기준 2026-10-30 종가</div>
+  <h1>코스피 4배 상승은 무엇으로 미리 보였나</h1>
+  <p class="lede">2,293에서 9,114까지 오른 2025–26년 사이클을 단계별로 분해했습니다. 이어서 1995년 이후 31년치 지수와 전 종목 일별 데이터로 "미리 포착하는 신호"를 하나씩 검증했습니다. 검증된 것과 가설, 기각된 것을 구분해 표시합니다.</p>
+  <p class="meta">표시: <span class="chip c-est">검증</span>출처·데이터로 확인 <span class="chip c-der">도출</span>이번 계산 결과 <span class="chip c-hyp">가설</span>사례 기반, 미검증 <span class="chip c-kill">기각</span>데이터가 반박 <span class="chip c-unr">미해결</span></p>
+  <nav class="toc" aria-label="목차">
+    <a href="#key">핵심 결론</a><a href="#story">무슨 일이 있었나</a><a href="#history">31년 대세상승</a><a href="#layers">4단계 신호 체계</a><a href="#memory">메모리 선행 지도</a><a href="#picks">수혜주 연결법</a><a href="#top">천장 경고</a><a href="#now">지금 판독</a><a href="#routine">점검 루틴</a><a href="#limits">한계·반증</a>
+  </nav>
+</header>
+
+<div class="tiles" role="list">
+  <div class="tile" role="listitem"><div class="num up">+297%</div><div class="lab">코스피 종가 기준 상승률<br>2025-04-09 → 2026-06-22</div></div>
+  <div class="tile" role="listitem"><div class="num">69%</div><div class="lab">같은 기간 코스피 시가총액 증가분 중 삼성전자·SK하이닉스 몫</div></div>
+  <div class="tile" role="listitem"><div class="num">+14%</div><div class="lab">같은 기간 코스피 종목 수익률의 중간값<br>(36%는 오히려 하락)</div></div>
+  <div class="tile" role="listitem"><div class="num down">−40%</div><div class="lab">고점 이후 종가 기준 최대 낙폭<br>9,114.55 → 5,469.47 (10/26)</div></div>
+</div>
+
+<h2 id="key">핵심 결론</h2>
+<ol class="key">
+  <li><div><span class="chip c-der">도출</span><b>이번 사이클은 4막이었습니다.</b> ① 정책 재평가(대선·상법 개정) → ② 반도체 이익 폭발(HBM·D램 가격) → ③ 레버리지 과열(신용·단일종목 레버리지 ETF) → ④ 붕괴(금리 인상 전환·쏠림 해소). 지수를 끌어올린 것은 사실상 두 종목이었고, 일반 종목은 지수를 거의 따라가지 못했습니다.</div></li>
+  <li><div><span class="chip c-der">도출</span><b>"바닥을 확인하는 신호"는 늦어도 충분합니다.</b> 31년 백테스트(과거 데이터로 규칙을 시험)에서 지수 200일 이동평균선 회복이나 시장 폭 회복 신호는 바닥 대비 +12~40% 지점에서 켜졌습니다. 그래도 진짜 대세상승에서는 그 뒤에 전체 상승폭의 50~85%가 남아 있었습니다. 2025년에는 5월 7일(2,574)에 켜졌고, 그 시점에 남은 상승폭은 85%였습니다.</div></li>
+  <li><div><span class="chip c-der">도출</span><b>하지만 같은 신호의 3분의 1 정도는 가짜였습니다.</b> 약세장 속 반등에서도 똑같이 켜졌기 때문입니다(2019-02, 2023-01, 2012-01, 2008-05 등). 가격 정보만으로는 진짜와 가짜를 구분할 수 없습니다.</div></li>
+  <li><div><span class="chip c-hyp">가설</span><b>가짜를 거르는 열쇠는 '점화 조건'입니다.</b> 세 가지를 봅니다. (a) 지수에서 비중이 큰 수출 산업의 제품 가격이 방향을 틀고 업황 전망치가 급히 상향되는지 (b) 금리 인하나 동결 같은 유동성 전환 (c) 구속력 있는 제도 변화. 2025년에는 셋이 모두 있었습니다. 실패한 2024년 밸류업 랠리에는 법적 구속력과 메모리 가격 급등이 없었습니다. 장기 데이터를 받을 수 없어 이 부분은 백테스트하지 못했습니다.</div></li>
+  <li><div><span class="chip c-kill">기각</span><b>"먼저 오른 종목이 끝까지 간다"는 코스피에서 성립하지 않았습니다.</b> 시가총액 상위 300종목의 최근 60일 수익률 순위와 이후 1년 수익률 순위의 상관(스피어만 순위상관)은 31년 평균 0.00이었습니다. 사이클 초입 8번 중 6번은 오히려 마이너스였습니다. 수혜주는 가격 모멘텀이 아니라 펀더멘털(제품 가격·품목별 수출·이익 전망 상향)로 골라야 합니다.</div></li>
+  <li><div><span class="chip c-der">도출</span><b>메모리 주가는 메모리 가격보다 먼저 움직입니다.</b> SK하이닉스 주가의 전년 대비 변화율은 D램 수출 단가의 변화율을 약 3개월 앞섰습니다(상관 0.91, 2020–25). 주가 바닥은 D램 계약가 바닥보다 4~12개월, 반도체 수출 증가율이 플러스로 돌아선 시점보다 약 11개월 빨랐습니다. 수출 증가율은 확인용 지표입니다.</div></li>
+  <li><div><span class="chip c-der">도출</span><b>2026년 6월 천장의 경고는 이익이 아니라 포지션과 금리에서 나왔습니다.</b> 외국인이 팔아도 지수가 올랐고, 신용 한도가 소진됐고, 두 종목 비중이 55%를 넘었습니다. 9,000 돌파일에 상승 종목은 109개, 하락 종목은 791개였습니다. 연준 인상도 가격에 반영되기 시작했습니다. 반면 메모리 가격과 이익은 고점 이후에도 계속 올랐습니다.</div></li>
+  <li><div><span class="chip c-hyp">가설</span><b>지금(2026-11-02)은 새 사이클의 시작 조건이 대부분 갖춰지지 않았습니다.</b> 금리는 인상 국면이고, 메모리 가격 상승률은 둔화 중이며, 외국인은 6개월째 순매도입니다. 지수는 200일선보다 11.7% 아래입니다. 다만 200일선 위 종목 비율이 20%까지 내려와, 다음 확인 신호가 나올 수 있는 '준비 구간'에는 들어왔습니다.</div></li>
+</ol>
+
+<h2 id="story">무슨 일이 있었나 (2024.7 → 2026.10)</h2>
+<p>아래 날짜와 수치는 모두 한국거래소 일별 종가와 대조했습니다(27개 항목 일치). 사건 설명은 공개 보도에서 가져왔습니다.</p>
+
+<figure>
+  <div class="ct">코스피 일별 종가와 7개 국면</div>
+  <div class="cs">음영은 국면 구분입니다. 축은 선형 눈금입니다.</div>
+  <div class="chart tall"><canvas id="c2" aria-label="2024년 7월부터 2026년 10월까지 코스피 일별 종가 차트" role="img"></canvas></div>
+  <figcaption>출처: 한국거래소 지수 일별 데이터(FinanceData/fdr_krx_data_cache). 2026-06-19 장중 최고 9,385.59, 2026-07-29 장중 최저 5,262.77.</figcaption>
+</figure>
+
+<div class="tbl"><table>
+<thead><tr><th>국면</th><th class="n">코스피</th><th>무슨 일이 있었나 (날짜는 보도·거래소 기준)</th></tr></thead>
+<tbody>
+<tr><td class="nowrap"><b>P0 약세장</b><br>24.07.11 → 25.04.09</td><td class="n down">−21%</td><td>8/5 −8.77% 폭락. D램 계약가 9~11월 하락(반도체 고점론). 12/3 계엄, 외국인 이탈. 3/31 공매도 전면 재개. 4/9 미국 상호관세 발효, 원/달러 1,484(2009년 이후 최고). 이 와중에 <b>방산(+66%)·조선(+49%)만 상승</b>. 1월에 이미 '트럼프 2.0 수혜'로 보도됐습니다.</td></tr>
+<tr><td class="nowrap"><b>P1 정책·대선</b><br>→ 25.06.20</td><td class="n up">+32%</td><td>4/10 관세 90일 유예. 4/21~22 이재명 후보가 상법 개정 조속 처리와 '코스피 5000'을 공약(지수 약 2,450). 5/29 한은 인하. 6/3 당선. 6/20 3,000 돌파. 주도는 원전 +144%, 방산 +102%, 지주사 +90%, 증권 +89%, 전력기기 +84%.</td></tr>
+<tr><td class="nowrap"><b>P2 상법·관세 타결</b><br>→ 25.10.27</td><td class="n up">+34%</td><td>7/3 1차 상법 개정(이사의 주주 충실의무). 7/31 한미 관세 15% 타결(3,500억 달러, MASGA 포함). 8/1 세제개편 충격 −3.88%가 나왔지만 9/15 철회. 8/25 2차 개정(집중투표). 9월 외국인 +7.45조로 연중 최대. D램 계약가는 4월부터 상승했고, 반도체 수출은 7월 +31.6%로 재가속. <b>반도체 빅2가 +90%로 주도권을 넘겨받음.</b> 10/27 4,000 돌파.</td></tr>
+<tr><td class="nowrap"><b>P3 반도체 본격화</b><br>→ 26.02.25</td><td class="n up">+50%</td><td>11/5 AI 버블 우려로 조정. 11/26 TrendForce가 4분기 D램 계약가 전망을 +8~13%에서 +45~50%로 대폭 상향. 12/2 배당소득 분리과세 통과. 12/10 연준 인하. 1/8 삼성 4분기 영업이익 20조(컨센서스 18.5조). 1/27 5,000 돌파. 2/2 1분기 전망 +90~95%로 재상향. 2/25 6,000 돌파와 같은 날 3차 상법 개정(자사주 소각 의무화).</td></tr>
+<tr><td class="nowrap"><b>P4 전쟁 급락·회복</b><br>→ 26.04.15</td><td class="n">0%</td><td>2/28 미·이스라엘–이란 전쟁. 3/4 −12.06%로 사상 최대 하락, 원/달러 1,506, 호르무즈 봉쇄. 3월 −19%, 개인은 24.9조 순매수. 4/7 휴전, 4/15 6,000 회복.</td></tr>
+<tr><td class="nowrap"><b>P5 레버리지 과열</b><br>→ 26.06.22</td><td class="n up">+50%</td><td>4/28 단일종목 레버리지 상품 허용. 5/6 7,000 돌파. 5월 외국인 −44.7조(월간 사상 최대) vs 개인 +35.1조. 5/14 빅2가 코스피200의 50% 돌파. 5/26 8,000 돌파. 5/27 단일종목 레버리지 ETF 상장. 6/3 브로드컴 가이던스 실망. 6/5 연준 인상이 가격에 반영되고 원/달러 1,539. 6/8 −8.29%. 6/17 KB증권 신용매수 제한. 6/18 9,000 돌파(상승 109·하락 791). 6/22 종가 최고 9,114.55, 빅2 비중 55.7%.</td></tr>
+<tr><td class="nowrap"><b>P6 붕괴</b><br>→ 26.10.29</td><td class="n down">−35%</td><td>6/23 −9.99%. 6/24 MSCI 관찰대상국 불발, 한은이 레버리지 74.8조(연초 대비 +82%)를 경고. 6/29 VKOSPI 97.99로 사상 최고. 7/16 한은 인상. 7/28 −10.84%(중국 CXMT 공포). 7/29 하이닉스 실적 발표 실망. 7/31 +17.91%로 사상 최대 상승. 8/27 한은 추가 인상. 9/16 연준 인상. 10/13 CXMT 4F² D램 계획 발표. 10/15 −7.57%. 10/26 종가 5,469.47.</td></tr>
+</tbody></table></div>
+
+<figure>
+  <div class="ct">쏠림과 시장 폭: 빅2 시가총액 비중 vs 200일선 위 종목 비율</div>
+  <div class="legend"><span><i style="background:var(--s2)"></i>삼성전자+SK하이닉스 시총 비중(%)</span><span><i style="background:var(--s1)"></i>200일 이동평균선 위에 있는 코스피 종목 비율(%)</span></div>
+  <div class="chart"><canvas id="c3" aria-label="빅2 비중과 200일선 위 종목 비율 추이" role="img"></canvas></div>
+  <figcaption>두 선이 벌어진 2026년 봄~여름은 지수가 극소수 종목에 의존했다는 뜻입니다. 계산: 코스피 보통주 전 종목, FinanceData/marcap 일별 시가총액.</figcaption>
+</figure>
+
+<h3>업종별로 보면: 주도주가 국면마다 바뀌었다</h3>
+<p>각 칸은 그 국면 동안 대표 종목들의 단순 평균 수익률입니다. 붉은색은 상승, 푸른색은 하락입니다(한국 시장 관례). 바스켓은 사후에 고른 대표 종목이라 설명용이며, 예측력의 증거는 아닙니다.</p>
+<div class="tbl">__HEATMAP__</div>
+<p class="meta">바스켓 구성 예시: 반도체 빅2(삼성전자·SK하이닉스), 소부장(한미반도체·이수페타시스·삼성전기·LG이노텍), 방산(한화에어로스페이스·LIG디펜스앤에어로스페이스·현대로템·KAI·한화시스템·풍산), 조선(HD현대중공업·한화오션·삼성중공업·HD한국조선해양·HD현대마린솔루션), 전력(HD현대일렉트릭·LS ELECTRIC·효성중공업·대한전선·LS·산일전기·가온전선), 원전(두산에너빌리티·한전기술·현대건설), 증권(키움·미래에셋·한국금융지주·NH·삼성증권), 지주(SK·한화·LG·삼성물산·HD현대·두산·SK스퀘어).</p>
+<div class="note">흐름은 이렇게 요약됩니다. <b>약세장에서도 오르던 업종</b>(방산·조선)이 먼저 나왔습니다. 이어 <b>정책 수혜주</b>(원전·지주·증권·전력)가 올랐습니다. 다음으로 <b>이익 엔진</b>(반도체)이 올라타 지수를 장악했고, 마지막에는 <b>레버리지가 이익 엔진에 집중</b>됐습니다. 전 구간 수익률은 빅2 +1,118%(하이닉스 +1,669%, 삼성 +567%), 소부장 +868%, 지주 +642%, 전력 +443%, 원전 +252%, 증권 +242%, 방산 +128%, 조선 +89%였습니다.</div>
+
+<h2 id="history">31년 데이터로 본 코스피 대세상승</h2>
+<figure>
+  <div class="ct">코스피 주간 종가(로그 눈금)와 대세상승 구간, 확인 신호</div>
+  <div class="legend"><span><i class="box" style="background:var(--band-up);border:1px solid var(--up)"></i>대세상승 구간</span><span><i class="dot" style="background:var(--s2)"></i>신호 B: 깊은 하락 후 200일선 회복</span><span><i class="tri"></i>신호 C: 시장 폭 회복(200일선 위 종목 20%↓→60%↑)</span></div>
+  <div class="chart tall"><canvas id="c1" aria-label="1995년부터 2026년까지 코스피 로그 차트와 신호" role="img"></canvas></div>
+  <figcaption>로그 눈금에서는 같은 높이가 같은 비율을 뜻합니다. 데이터: 한국거래소, 1995-05-02 ~ 2026-10-30.</figcaption>
+</figure>
+
+<div class="tbl"><table>
+<thead><tr><th>사이클</th><th class="n">바닥 → 고점(종가)</th><th class="n">상승</th><th>바닥 무렵 조건</th><th>주도</th><th>끝난 계기</th></tr></thead>
+<tbody>
+<tr><td class="nowrap">1998–2000</td><td class="n">280 → 1,059</td><td class="n">+278%</td><td>IMF 직후 극단적 원화 약세. 연준 3연속 인하(98.9~11). 국내 금리 30%대에서 급락. 외국인 한도 완전 개방.</td><td>IT·인터넷</td><td>1999년 미국 긴축, 닷컴 붕괴</td></tr>
+<tr><td class="nowrap">2001–02</td><td class="n">469 → 938</td><td class="n">+100%</td><td>9·11 직후, 연준 급인하</td><td>내수·카드</td><td>카드 버블. 2003년 515까지 재하락(실패한 대세상승)</td></tr>
+<tr><td class="nowrap">2003–07</td><td class="n">515 → 2,065</td><td class="n">+301%</td><td>PBR 0.65. SK글로벌·카드사태·이라크전·북핵이 동시에 발생. 6월 연준 1%. 외국인 2003년 13.8조 순매수.</td><td>중국 수혜(조선·철강·화학), 적립식 펀드</td><td>PBR 1.87배, 펀드 광풍, 서브프라임</td></tr>
+<tr><td class="nowrap">2008–11</td><td class="n">939 → 2,229</td><td class="n">+137%</td><td>PBR 0.82. 연준 제로금리, 한미 통화스와프. 외국인 2008년 대량 매도 뒤 2009년 31.6조 순매수.</td><td>차화정(자동차·화학·정유)</td><td>PBR 1.45배, 유럽 재정위기</td></tr>
+<tr><td class="nowrap">2016–18</td><td class="n">1,835 → 2,598</td><td class="n">+42%</td><td>수출 19개월 연속 감소 중. 연준 동결. 외국인 2016년 11.3조 순매수.</td><td>삼성전자(지수보다 5개월 먼저 신고가)</td><td>반도체 수출 증가율 정점(18.1월 +53%), 연준 인상, 무역전쟁</td></tr>
+<tr><td class="nowrap">2020–21</td><td class="n">1,458 → 3,305</td><td class="n">+127%</td><td>PBR 0.59(2000년 이후 최저). 바닥 당일 원/달러 최약세, 같은 날 연준 제로금리·한미 스와프. 개인 대량 매수.</td><td>BBIG·반도체</td><td>수출 증가율 정점(21.5월 +45.6%) 6주 뒤 고점</td></tr>
+<tr><td class="nowrap">2025–26</td><td class="n">2,294 → 9,115</td><td class="n">+297%</td><td>PBR 약 0.87. 바닥 당일 원/달러 1,484. 관세 충격, 공매도 재개. 한은 인하 중. 대선 뒤 상법 개정.</td><td>정책주 → 반도체(HBM·D램)</td><td>레버리지·쏠림·금리 인상 전환·AI 투자 의구심·중국 메모리</td></tr>
+</tbody></table></div>
+<p class="meta">지수 수치는 거래소 데이터로 검증했습니다. '바닥 무렵 조건'과 '끝난 계기'는 보도와 리서치를 검색 요약으로 확인한 것이라 원문 대조가 필요합니다. 1985–89년(3저 호황, 164→1,008)과 1992–94년(외국인 개방, 459→1,139)은 일별 데이터가 없어 표에서 뺐습니다.</p>
+
+<h3>공통점과 예외</h3>
+<ul class="plain">
+<li><span class="chip c-est">검증</span>시작점에서 연준은 매번 <b>인하 또는 동결</b> 중이었습니다(1998·2001·2003·2008·2016·2020·2025).</li>
+<li><span class="chip c-est">검증</span>바닥 무렵 <b>PBR이 0.6~0.9배</b>였습니다. 다만 필요조건일 뿐 충분조건은 아닙니다. 2019년 8월 PBR 0.82, 2024년 말 0.8 부근에서는 대세상승이 오지 않았습니다.</li>
+<li><span class="chip c-est">검증</span><b>원화 최약세와 지수 바닥이 같은 날</b>인 경우가 많았습니다(2009-03 재바닥, 2020-03-19, 2025-04-09). 예측 신호라기보다는 투매를 확인하는 신호입니다.</li>
+<li><span class="chip c-est">검증</span><b>수출 증가율 플러스 전환은 주가보다 6~11개월 늦었습니다</b>(2016·2020·2023). 반대로 <b>수출 증가율이 정점을 찍는 시점은 지수 천장과 가까웠습니다</b>(1989·2018-01·2021-05·2026 상반기).</li>
+</ul>
+
+<h2 id="layers">미리 포착하는 4단계 신호 체계</h2>
+<p>한 가지 지표로 바닥과 천장을 맞히는 방법은 데이터에서 찾지 못했습니다. 대신 네 층을 차례로 통과하는지 확인하는 구조가 과거 사례와 가장 잘 맞습니다. 층마다 증거 수준이 다르므로 함께 표시합니다.</p>
+
+<div class="layer">
+<h3>1층 · 바닥 조건 (필요조건)</h3>
+<p><span class="chip c-est">검증</span>코스피 PBR 0.9배 이하, 외국인의 대규모 매도 뒤 매도 둔화, 원화 극단 약세 또는 투매일, 그리고 "한국은 끝났다"류의 비관이 동시에 있는 상태입니다. 이것만으로는 사지 않습니다. 2019년과 2022~24년에도 이 조건은 충족됐습니다.</p>
+</div>
+<div class="layer">
+<h3>2층 · 점화 조건 (진짜와 가짜를 가르는 층)</h3>
+<p><span class="chip c-hyp">가설</span>아래 셋 중 둘 이상이 새로 켜져야 합니다.</p>
+<ul class="plain">
+<li><b>이익 엔진의 가격 전환.</b> 지수 비중이 큰 수출 산업의 제품 가격이 하락에서 보합, 다시 상승으로 돕니다(이번엔 D램 계약가: 2023-10, 2025-04). <b>업황 전망치가 한 번에 크게 상향</b>되면 가속 신호입니다(TrendForce 2025-11-26 +8~13% → +45~50%, 2026-02-02 +55~60% → +90~95%).</li>
+<li><b>유동성 전환.</b> 연준이나 한은이 인하·동결로 돌아섭니다. 역사적 시작점 7번 모두 해당합니다.</li>
+<li><b>구속력 있는 제도 변화.</b> 법으로 강제되는 지배구조·주주환원 변화입니다(2025 상법 개정 3차례, 배당 분리과세). 2024년 자율 밸류업은 랠리가 오래가지 못했습니다.</li>
+</ul>
+</div>
+<div class="layer">
+<h3>3층 · 가격 확인 (31년 백테스트 완료)</h3>
+<p><span class="chip c-der">도출</span>2층이 켜진 상태에서 아래 신호가 나오면 진입 근거가 됩니다. 2층 없이 나온 3층 신호는 약세장 반등일 가능성이 큽니다.</p>
+<div class="tbl"><table>
+<thead><tr><th>신호</th><th class="n">횟수</th><th class="n">1년 뒤 상승</th><th class="n">1년 평균</th><th>진짜 대세상승에서 켜진 위치</th></tr></thead>
+<tbody>
+<tr><td><b>B</b> 최근 6개월 안에 고점 대비 −20% 이상 하락했던 지수가 200일선을 상향 돌파</td><td class="n">15</td><td class="n">64%</td><td class="n">+26.9%</td><td>98-10(바닥+32%, 남은 상승 56%) · 03-06(+26%, 54%) · 09-04(+38%, 52%) · 20-05(+39%, 50%) · <b>25-05-07(+12%, 85%)</b></td></tr>
+<tr><td><b>C</b> 200일선 위 종목 비율이 6개월 안에 20% 미만이었다가 60% 초과</td><td class="n">9</td><td class="n">67%</td><td class="n">+40.5%</td><td>98-11 · 01-12 · 09-04 · 20-09 · <b>25-06-04(+21%, 77%)</b></td></tr>
+<tr><td><b>A</b> 상승종목비율 10일 평균이 0.40 미만에서 10일 안에 0.615 초과(브레드스 스러스트)</td><td class="n">9</td><td class="n">63%</td><td class="n">+10.5%</td><td>08-11 · 20-03. 가짜 신호가 많아 단독 사용은 비추천</td></tr>
+<tr><td>기준선: 아무 날이나 매수</td><td class="n">—</td><td class="n">58%</td><td class="n">+11.7%</td><td>—</td></tr>
+</tbody></table></div>
+<p class="meta">B 신호의 가짜 사례: 1997-05, 2000-01, 2002-06, 2008-05, 2012-01, 2019-02, 2023-01. 표본이 작고(신호 9~15회) 1년 수익률이 서로 겹쳐서 통계적 유의성은 주장하지 않습니다. 기술 통계로만 봐 주세요.</p>
+</div>
+<div class="layer">
+<h3>4층 · 과열과 천장 (위험 관리용)</h3>
+<p><span class="chip c-der">도출</span>과거 천장마다 드러난 지표가 달랐습니다(2000년 시장 폭 붕괴, 2007년 변동성 상승, 2021년 거래 과열). 그래서 단일 지표로 천장을 맞히는 규칙은 없습니다. 2026년 6월은 거의 모든 지표가 31년 중 극단값이었습니다. 다만 이 경고들은 3월부터 켜졌고 그 뒤에도 지수는 50% 더 올랐습니다. <b>타이밍 도구가 아니라 레버리지와 비중을 줄이는 근거</b>로 써야 합니다. 자세한 내용은 아래 <a href="#top">천장 경고</a>에 있습니다.</p>
+</div>
+
+<h2 id="memory">메모리(반도체) 선행·후행 지도</h2>
+<p>이번 사이클의 이익 엔진은 메모리였습니다. 무엇이 먼저 움직이고 무엇이 늦게 따라오는지 순서를 알면 다음 번에도 쓸 수 있습니다.</p>
+<figure>
+  <div class="ct">SK하이닉스 주간 종가(로그)와 펀더멘털 사건</div>
+  <div class="cs">번호는 아래 목록의 사건입니다.</div>
+  <div class="chart tall"><canvas id="c4" aria-label="SK하이닉스 주가와 메모리 사건 타임라인" role="img"></canvas></div>
+  <ol class="events" id="evlist"></ol>
+  <figcaption>주가: FinanceData/marcap(수정주가 아님, 이 기간에는 액면분할 없음). 사건 날짜: 산업부 수출입동향, TrendForce 발표, 회사 실적 발표의 보도 기준.</figcaption>
+</figure>
+
+<figure>
+  <div class="ct">한국 반도체 월간 수출액 (10억 달러)</div>
+  <div class="cs">막대 위에 마우스를 올리거나 탭하면 전년 대비 증가율이 나옵니다. 빈칸은 이번 조사에서 확인하지 못한 달입니다.</div>
+  <div class="chart short"><canvas id="c5" aria-label="한국 반도체 월간 수출액 막대그래프" role="img"></canvas></div>
+  <figcaption>산업통상자원부 월간 수출입동향 보도 기준(검색 요약에서 수집했으므로 원문 대조 필요). 2026년 9월 603억 달러, 전체 수출의 49.9%.</figcaption>
+</figure>
+
+<div class="tbl"><table>
+<thead><tr><th>순서</th><th>2022–24 사이클</th><th>2024–26 사이클</th></tr></thead>
+<tbody>
+<tr><td>① 주가 바닥</td><td>삼성 2022-09-29 · 하이닉스 2022-12-29</td><td>하이닉스 2024-09-19 · 삼성 2024-11-14</td></tr>
+<tr><td>② 수출 증가율 최저</td><td>2023-01 (−44.5%)</td><td>2025-02 (−3.0%)</td></tr>
+<tr><td>③ D램 계약가 바닥 → 첫 상승</td><td>2023-09 $1.30 → 10월 +15%</td><td>2024-12~25-03 $1.35 보합 → 4월 상승</td></tr>
+<tr><td>④ 수출 증가율 플러스 전환·재가속</td><td>2023-11 (+10.7%)</td><td>2025-07 (+31.6%)</td></tr>
+<tr><td>⑤ 이익 바닥·흑자 전환 발표</td><td>하이닉스 4Q23 흑자(2024-01-25 발표)</td><td>삼성 2Q25 약 4.7조(역산)</td></tr>
+<tr><td>⑥ 업황 전망 급상향</td><td>—</td><td>2025-11-26, 2026-02-02(TrendForce)</td></tr>
+<tr><td>⑦ 계약가 상승률 정점</td><td>—</td><td>1Q26 약 +95% → 2Q +58~63% → 3Q +13~18% → 4Q +10~15%</td></tr>
+<tr><td>⑧ 주가 정점</td><td>하이닉스 2024-07-11 (241,000)</td><td>삼성 2026-06-18 (362,500) · 하이닉스 2026-06-22 (2,919,000)</td></tr>
+</tbody></table></div>
+<ul class="plain">
+<li><span class="chip c-der">도출</span><b>주가는 바닥에서 4~12개월 먼저 움직였습니다.</b> 가격이 아직 떨어지고 있어도 <b>하락 폭이 줄어드는 것</b>(2차 미분 개선), 감산 같은 공급 조절, 나쁜 뉴스에 주가가 더 빠지지 않는 반응이 가장 이른 단서였습니다.</li>
+<li><span class="chip c-der">도출</span><b>정점은 가격 수준이 아니라 상승률이 꺾이는 구간에서 나왔습니다.</b> 2026년 계약가는 10월에도 최고치였지만, 상승률은 1분기에 정점을 찍었습니다. 주가는 상승률이 급감하는 전망(3분기 +13~18%, 7/3 발표) 직전인 6월에 정점을 찍었습니다. 2024년에도 7월 주가 정점이 9월 계약가 하락보다 먼저였습니다.</li>
+<li><span class="chip c-der">도출</span>D램 수출 단가(관세청 기준, 증권사 차트에서 수치화한 근사치)와 하이닉스 주가의 전년 대비 변화율은 <b>주가가 3개월 앞설 때 상관 0.91</b>로 가장 높았습니다(동시 0.69). 표본은 2020–25년입니다.</li>
+<li><span class="chip c-hyp">가설</span>2026년 11월부터는 작년 기저가 높아져 반도체 수출 증가율이 기계적으로 급감합니다. 증가율이 아니라 <b>금액 수준과 영업일 조정 전월 대비 변화</b>를 봐야 합니다.</li>
+</ul>
+
+<h2 id="picks">수혜주 연결법</h2>
+<figure>
+  <div class="ct">"먼저 오른 종목이 계속 오르나?" 사이클 초입 검증</div>
+  <div class="cs">바닥 60거래일 뒤, 시총 상위 300종목의 직전 60일 수익률 순위와 이후 250일 수익률 순위의 상관입니다. 음영은 31년 전체 날짜에서 나온 값의 10~90% 범위입니다.</div>
+  <div class="chart short"><canvas id="c6" aria-label="사이클별 모멘텀 순위상관 막대그래프" role="img"></canvas></div>
+  <figcaption>0이면 예측력이 없고, 음수면 먼저 오른 종목이 오히려 덜 올랐다는 뜻입니다. 31년 평균 0.004(표준편차 0.127). 52주 신고가 근처 종목으로 바꿔 시험해도 결과는 같았습니다. 상장폐지 종목도 포함했습니다.</figcaption>
+</figure>
+<p><span class="chip c-kill">기각</span>가격 모멘텀으로 수혜주를 고르는 방법은 코스피에서 통하지 않았습니다. 사이클 초입에는 많이 빠졌던 종목이 먼저 튀고, 진짜 이익 주도주는 늦게 올라탑니다. 2025년이 전형적이었습니다. 2025년 상반기 반도체 빅2는 시장보다 약했습니다(빅2 상대강도는 5월 저점, 9월부터 급등). 그런데 최종 수익의 대부분은 빅2에서 나왔습니다. 2025-07-09부터 1년 동안 동일가중 평균은 +17%, 시총가중은 +115%였습니다.</p>
+
+<h3>대신 쓸 방법: 병목 매핑 6단계</h3>
+<p><span class="chip c-hyp">가설</span>2025년 사례로 보면 각 단계는 주가보다 먼저 공개된 정보로 확인할 수 있었습니다. 다음 사이클에 쓸 순서입니다.</p>
+<div class="tbl"><table>
+<thead><tr><th>단계</th><th>무엇을 보나</th><th>2025년에는 언제 보였나</th></tr></thead>
+<tbody>
+<tr><td class="nowrap">1. 수요 충격</td><td>세계 단위의 돈이 어디로 몰리나(AI 데이터센터 투자, 재무장, 전력망, 조선 교체 수요)</td><td>하이퍼스케일러 투자 가이던스 상향이 이어짐. 방산·조선은 1월에 '트럼프 2.0 수혜'로 보도</td></tr>
+<tr><td class="nowrap">2. 병목 품목</td><td>가격이 오르고 납기가 길어지는 부품(HBM·서버 D램, 변압기·전선, 선박, 포탄·자주포)</td><td>D램 계약가 4월부터 상승, 변압기 납기 장기화</td></tr>
+<tr><td class="nowrap">3. 한국의 점유율</td><td>그 병목에서 세계 점유율이 높은 한국 기업</td><td>하이닉스 HBM, 조선 3사, HD현대일렉트릭·효성중공업·LS ELECTRIC</td></tr>
+<tr><td class="nowrap">4. 숫자로 확인</td><td>관세청 10일·20일 품목별 수출, 계약가격, 수주잔고</td><td>반도체 수출 7월 +31.6% 재가속(8/1 발표)</td></tr>
+<tr><td class="nowrap">5. 전망치 상향</td><td>업황 전망·이익 컨센서스가 큰 폭으로 위로 수정되는지</td><td>TrendForce 11/26, 2/2 대폭 상향. 삼성 4Q 깜짝 실적(1/8)</td></tr>
+<tr><td class="nowrap">6. 정책·2차 수혜</td><td>제도 변화 수혜(지주·증권·은행), 이익 폭발 기업의 지주사·장비주, 거래대금 수혜 증권주</td><td>4/21 공약 → 지주·증권 급등. SK·SK스퀘어(하이닉스 지분), 한미반도체</td></tr>
+</tbody></table></div>
+
+<h2 id="top">천장에서 보였던 경고</h2>
+<div class="tbl"><table>
+<thead><tr><th>지표</th><th class="n">2026-06-22</th><th class="n">백분위*</th><th>과거 천장과 비교</th></tr></thead>
+<tbody>
+<tr><td>지수의 200일선 대비 괴리</td><td class="n">+76%</td><td class="n">100</td><td>2000년 +22%, 2007년 +23%, 2021년 +14%</td></tr>
+<tr><td>200일선 위 종목 비율</td><td class="n">28.5%</td><td class="n">1</td><td>2007년 64%, 2021년 85%. 지수만 오르고 종목은 내림</td></tr>
+<tr><td>빅2 비중의 120일 변화</td><td class="n">+25%p</td><td class="n">100</td><td>과거 천장은 대부분 ±5%p 이내</td></tr>
+<tr><td>20일 변동성 / 1년 변동성</td><td class="n">1.51배</td><td class="n">98</td><td>2007년 1.20배. 고점에서 변동성 확대</td></tr>
+<tr><td>거래대금/시총(5년 중앙값 대비)</td><td class="n">1.48배</td><td class="n">85</td><td>2000년 2.7배, 2021년 1.8배</td></tr>
+<tr><td>원/달러 60일 변화</td><td class="n">+2.7%</td><td class="n">87</td><td>과거 천장에서는 대개 원화 강세였음. 이번엔 원화 약세 속 천장</td></tr>
+</tbody></table></div>
+<p class="meta">* 31년 중 지수가 1년 최고치의 97% 이상이던 날들 가운데 몇 번째 백분위인지 나타냅니다.</p>
+<p><span class="chip c-est">검증</span>보도로 확인한 2026년 경고들은 모두 천장 전에 공개됐습니다.</p>
+<ul class="plain">
+<li><b>손바뀜:</b> 4월 개인 사상 최대 순매도 → 5월 외국인 −44.7조, 23거래일 연속 −74.5조 매도. 그런데도 지수는 20% 넘게 올랐습니다. 신용으로 산 매수가 받쳤다는 뜻입니다.</li>
+<li><b>레버리지 한도:</b> 신용융자 사상 최대(5/15 36.6조 → 6/24 38.6조). 증권사 신용 한도 소진, 6/17 매수 제한.</li>
+<li><b>새 레버리지 상품:</b> 단일종목 2배 상품 상장(5/27). 그해 서킷브레이커 7번 중 5번이 상장 이후에 나왔습니다.</li>
+<li><b>쏠림과 시장 폭:</b> 빅2가 코스피200의 50% 돌파(5/14). 9,000 돌파일 상승 109·하락 791.</li>
+<li><b>고점에서의 급락:</b> 천장 10일 전인 6/8 −8.29%로 서킷브레이커 발동.</li>
+<li><b>금리·환율:</b> 6/5 연준 인상이 가격에 완전 반영됐고, 원/달러 1,539~1,556으로 17년 만의 약세.</li>
+<li><b>이야기의 균열:</b> 브로드컴 AI 가이던스 실망(6/3)을 시장이 3주간 무시했습니다.</li>
+</ul>
+<p><span class="chip c-der">도출</span>위 6개 지표 중 몇 개가 켜졌는지로 경고 점수를 만들어 31년 데이터에 적용했습니다. 지수가 고점 근처일 때 점수가 2 이상이면 이후 6개월 안에 −20% 하락이 올 확률이 20%였습니다(점수 0이면 6%). 하지만 점수 3~4는 2026년 3~5월에 이미 나왔고 그 뒤 지수는 더 올랐습니다. <b>위험도는 알려주지만 날짜는 알려주지 않습니다.</b></p>
+
+<h2 id="now">지금 판독 (2026-11-02 기준)</h2>
+<div class="tbl"><table>
+<thead><tr><th>층</th><th>지표</th><th>현재</th><th>새 사이클 조건</th><th>판정</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>밸류에이션</td><td>PBR 약 1배(10/20 보도, 지수 5,100 부근 기준)</td><td>0.9배 이하</td><td><span class="status st-wait">확인 필요</span></td></tr>
+<tr><td>1</td><td>외국인 수급</td><td>5~10월 대규모 순매도(9월 −23조, 10월 −19.6조)</td><td>매도 소진 → 순매수 전환</td><td><span class="status st-no">미충족</span></td></tr>
+<tr><td>1</td><td>원/달러</td><td>1,325(10/23). 6월 1,556에서 원화 강세로 돌아섬</td><td>극단 약세 후 반전</td><td><span class="status st-na">해당 약함</span></td></tr>
+<tr><td>2</td><td>금리</td><td>연준 9/16 인상, 10/28 동결(인상 소수의견 2명). 한은 7·8월 인상</td><td>인하·동결로 전환</td><td><span class="status st-no">역방향</span></td></tr>
+<tr><td>2</td><td>메모리 가격</td><td>계약가는 최고치지만 상승률 둔화(DDR4 10월 +5.8%, 낸드 보합, 4Q +10~15%)</td><td>하락 → 하락 둔화 → 상승 전환</td><td><span class="status st-no">사이클 후반형</span></td></tr>
+<tr><td>2</td><td>반도체 수출</td><td>10월 564억 달러(+259%). 9월 603억보다 감소. 11월부터 기저효과</td><td>금액이 다시 상승 추세</td><td><span class="status st-wait">관찰</span></td></tr>
+<tr><td>2</td><td>경쟁 구도</td><td>중국 CXMT 상장(7/31), 4F² D램 계획(10/13)</td><td>공급 위협 완화</td><td><span class="status st-no">부담</span></td></tr>
+<tr><td>3</td><td>추세</td><td>지수 5,731, 200일선 6,487보다 −11.7%</td><td>200일선 상향 돌파(신호 B)</td><td><span class="status st-no">미충족</span></td></tr>
+<tr><td>3</td><td>시장 폭</td><td>200일선 위 종목 20%, 50일선 위 13%, 52주 신저가 10.8%</td><td>20% 이하 → 60% 초과(신호 C)</td><td><span class="status st-wait">준비 구간</span></td></tr>
+<tr><td>4</td><td>쏠림</td><td>빅2 비중 52%</td><td>—</td><td><span class="status st-wait">여전히 높음</span></td></tr>
+</tbody></table></div>
+<p><span class="chip c-unr">미해결</span><b>이번 하락이 메모리 사이클의 끝인지, 사이클 중간의 조정인지는 아직 판정할 수 없습니다.</b> 판정 기준을 미리 정해 둡니다.</p>
+<ul class="plain">
+<li><b>사이클 종료로 판정:</b> TrendForce 분기 계약가 전망이 마이너스로 전환되고, 반도체 수출 금액이 두 달 이상 연속 감소하며, 하이퍼스케일러가 투자 가이던스를 낮추는 경우.</li>
+<li><b>중간 조정으로 판정:</b> 연준·한은이 인하 쪽으로 돌아서고, 시장 폭이 60%를 넘게 회복하고, 지수가 200일선을 회복하고, 외국인 순매수가 4주 이상 이어지는 경우. 2층과 3층이 동시에 켜진다는 뜻입니다.</li>
+</ul>
+
+<h2 id="routine">정기 점검 루틴</h2>
+<div class="tbl"><table>
+<thead><tr><th>주기</th><th>지표</th><th>어디서</th><th>무엇을 보나</th></tr></thead>
+<tbody>
+<tr><td class="nowrap">매월 1일</td><td>품목별 수출(반도체·선박·전력기기·자동차)</td><td>산업통상자원부 수출입동향</td><td>금액 수준, 일평균, 증가율의 방향 전환</td></tr>
+<tr><td class="nowrap">매월 11·21일</td><td>1~10일, 1~20일 수출</td><td>관세청</td><td>월말보다 2~3주 빠른 같은 신호</td></tr>
+<tr><td class="nowrap">월말·분기 초</td><td>D램·낸드 계약가, 분기 전망</td><td>TrendForce(DRAMeXchange)</td><td>하락 폭 축소, 전망치 상향·하향 폭</td></tr>
+<tr><td class="nowrap">분기</td><td>삼성 잠정실적, 하이닉스·마이크론 실적과 가이던스, 빅테크 설비투자 가이던스</td><td>각사 IR, DART</td><td>컨센서스 대비 차이, 가이던스 방향</td></tr>
+<tr><td class="nowrap">매일·매주</td><td>외국인·기관 순매수, 신용융자 잔고, 고객예탁금, VKOSPI, 원/달러</td><td>한국거래소, 금융투자협회</td><td>지수 방향과 수급 방향의 어긋남, 레버리지 급증</td></tr>
+<tr><td class="nowrap">매주 직접 계산</td><td>200일선 위 종목 비율, 52주 신고가 비율, 빅2 비중, 경고 점수</td><td>이 저장소의 코드(<code>analysis/</code>)</td><td>신호 B·C 발생, 쏠림 변화</td></tr>
+<tr><td class="nowrap">수시</td><td>연준·한은 금리 결정, 상법·세제 입법, MSCI 시장분류(매년 6월)</td><td>각 기관 발표</td><td>2층 점화 여부</td></tr>
+</tbody></table></div>
+
+<h2 id="limits">한계와 반증 규칙</h2>
+<ul class="plain">
+<li><b>과제 정의.</b> "코스피에서 +50% 넘는 다개월 상승이 시작됐는지를 바닥 후 약 3개월 안에 판별하고, 주도 업종을 고른다."</li>
+<li><b>사용한 정보.</b> 가격·시장 폭은 31년 데이터로 검증했습니다. 수출·제품 가격·정책·금리는 사례 기반이고 2023–26년은 월별 수치가 있습니다. 밸류에이션은 일부 시점만 있습니다.</li>
+<li><span class="chip c-der">도출</span><b>식별 불가능성 확인.</b> 가격 신호가 똑같이 켜졌는데 결과가 갈린 사례(2019-02 실패 vs 2020-05 성공)가 있습니다. 따라서 가격만으로는 진짜와 가짜를 원리적으로 구분할 수 없습니다. 2층 정보가 그 차이를 메워 줄 최소 추가 정보라는 것이 이 보고서의 가설입니다.</li>
+<li><b>표본 크기.</b> 대세상승은 7번뿐입니다. 모든 비율은 기술 통계이며, 미래 적중률을 보장하지 않습니다.</li>
+<li><b>데이터 한계.</b> 이 작업 환경에서는 한국은행 ECOS, KOSIS, FRED, 네이버, KRX 사이트 접속이 막혀 장기 품목별 수출, PBR, 이익 전망 수정 시계열을 받지 못했습니다. 그래서 2층은 백테스트하지 못했습니다. 2023–26년 수출·가격 수치는 검색 요약에서 모았기 때문에 원문 대조가 필요합니다.</li>
+<li><b>편향.</b> 업종 분류는 현재 상장사 기준이고, 테마 바스켓은 사후에 골랐습니다. 하락 종목은 상장폐지 직전 가격을 사용했습니다.</li>
+<li><b>체제 변화.</b> 2026년에는 단일종목 레버리지 ETF, 두 종목 55% 쏠림, 하루 ±10%대 변동이 10번 있었습니다. 과거 패턴이 그대로 반복된다고 가정할 수 없습니다.</li>
+<li><b>반증 규칙.</b> ① 2층 없이 3층 신호만으로 +50% 대세상승이 나오면 "2층 필수" 가설을 기각합니다. ② 다음 사이클 초입에서 모멘텀 순위상관이 +0.2를 넘으면 '모멘텀 무효' 결론을 다시 검토합니다. ③ 메모리 계약가 상승률이 다시 가속하는데도 주가가 6개월 넘게 하락하면 "주가가 가격을 3개월 앞선다"는 관계를 재검토합니다.</li>
+<li><b>다음 결정적 검증.</b> ECOS·KOSIS·KRX에 접속할 수 있게 되면 1995년 이후 월별 품목 수출, PBR, 컨센서스 이익 수정 비율을 받습니다. 그다음 1·2·3층을 결합한 규칙을 미리 정해 둔 상태에서 백테스트합니다.</li>
+</ul>
+
+<footer>
+<h3>주요 출처</h3>
+<ul class="src">
+<li>지수·종목 데이터: FinanceData/fdr_krx_data_cache(KOSPI 일별 1995–2026), FinanceData/marcap(전 종목 일별 시가총액 1995–2026), james-brand/korea-market-data(KRX 업종지수·외국인 수급, CC BY 4.0), datasets/exchange-rates(원/달러, FRED 원자료)</li>
+<li>D램 수출 단가 근사치: SJS9401/market-dashboard data/asp_dram.json(증권사 주간 자료 차트를 수치화)</li>
+<li>사건·정책: 연합뉴스·뉴시스·한경·매경·아시아경제·서울신문·Korea JoongAng Daily·Korea Herald·Bloomberg·CNBC 보도(2024-08 ~ 2026-11)</li>
+<li>메모리 가격: TrendForce 보도자료 2025-09-24, 2026-01-05, 2026-02-02, 2026-03-31, 2026-06-01, 2026-07-03, 2026-09-30, 2026-10-20 및 DRAMeXchange 고정가 보도</li>
+<li>수출: 산업통상자원부 월간 수출입동향(2023-01 ~ 2026-10), 관세청 10일·20일 수출</li>
+<li>실적: SK하이닉스 뉴스룸 1Q~3Q26 실적, 삼성전자 뉴스룸 1Q·3Q26 실적</li>
+<li>과거 사이클: KDI 경제정보센터, 한국거래소 시장 리뷰, 증권사 리서치 및 언론(1990~2021) 검색 요약</li>
+</ul>
+<p class="meta">투자 권유가 아닙니다. 과거 데이터 분석이며 미래 수익을 보장하지 않습니다. 작성 2026-11-02 10:14 KST. 분석 코드와 결과 표는 mj 저장소 claude/kospi-cycle-analysis-16gbnv 브랜치에 있습니다.</p>
+</footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
+<script>
+const D = __DATA__;
+const EXPORTS = __EXPORTS__;
+const LEAD = __LEAD__;
+const PHASES = [["P0","2024-07-11","2025-04-09"],["P1","2025-04-09","2025-06-20"],["P2","2025-06-20","2025-10-27"],["P3","2025-10-27","2026-02-25"],["P4","2026-02-25","2026-04-15"],["P5","2026-04-15","2026-06-22"],["P6","2026-06-22","2026-10-29"]];
+const EVENTS = [
+ ["2022-12-29","하이닉스 주가 바닥(75,000원)"],["2023-02-01","1월 반도체 수출 −44.5%(최저) 발표"],["2023-10-31","D램 계약가 첫 상승(+15%)"],
+ ["2023-12-01","11월 반도체 수출 플러스 전환 발표"],["2024-01-25","하이닉스 흑자 전환 발표"],["2024-07-11","주가 고점(241,000원)"],
+ ["2024-09-19","주가 바닥(152,800원), 계약가 9월 −17%"],["2025-04-30","D램 계약가 상승 재개(4월)"],["2025-08-01","7월 반도체 수출 +31.6% 발표"],
+ ["2025-11-26","TrendForce 4Q 전망 +45~50%로 상향"],["2026-02-02","1Q 전망 +90~95%로 재상향"],["2026-06-22","주가 정점(2,919,000원)"],["2026-07-03","3Q 계약가 상승률 +13~18%로 둔화 전망"]];
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const fmt = v => v==null ? "—" : Number(v).toLocaleString("ko-KR");
+function idxOf(labels, date){let lo=0,hi=labels.length-1;while(lo<hi){const m=(lo+hi)>>1;if(labels[m]<date)lo=m+1;else hi=m;}return lo;}
+const bandPlugin={id:"bands",beforeDatasetsDraw(chart,args,o){if(!o||!o.items)return;const{ctx,chartArea:{top,bottom},scales:{x}}=chart;ctx.save();
+  o.items.forEach(b=>{const x0=x.getPixelForValue(b.from),x1=x.getPixelForValue(b.to);ctx.fillStyle=b.color;ctx.fillRect(x0,top,Math.max(1,x1-x0),bottom-top);
+  if(b.label){ctx.fillStyle=o.labelColor;ctx.font=o.font;ctx.textAlign="center";ctx.fillText(b.label,(x0+x1)/2,top+13);}});ctx.restore();}};
+const vlinePlugin={id:"vlines",afterDatasetsDraw(chart,args,o){if(!o||!o.items)return;const{ctx,chartArea:{top,bottom},scales:{x}}=chart;ctx.save();
+  o.items.forEach((v,k)=>{const px=x.getPixelForValue(v.i),ly=top+10+(k%2)*13;ctx.strokeStyle=o.color;ctx.lineWidth=1;ctx.setLineDash([3,3]);ctx.beginPath();ctx.moveTo(px,ly+5);ctx.lineTo(px,bottom);ctx.stroke();
+  ctx.setLineDash([]);ctx.fillStyle=o.color;ctx.font=o.font;ctx.textAlign="center";ctx.fillText(v.label,px,ly);});ctx.restore();}};
+let charts=[];
+function base(){
+  const ink=css("--ink"),ink2=css("--ink-2"),grid=css("--grid"),surf=css("--surface"),rule=css("--rule");
+  Chart.defaults.font.family=css("--f-body");Chart.defaults.font.size=11.5;Chart.defaults.color=ink2;
+  return {ink,ink2,grid,surf,rule,
+    tooltip:{backgroundColor:surf,titleColor:ink,bodyColor:ink2,borderColor:rule,borderWidth:1,padding:9,displayColors:true,boxWidth:8,boxHeight:8,usePointStyle:true}};
+}
+function xYearTicks(labels,step){return {autoSkip:false,maxRotation:0,callback:(v,i)=>{const l=labels[i];if(!l)return "";const prev=labels[i-1];
+  if(!prev||l.slice(0,4)!==prev.slice(0,4)){const y=+l.slice(0,4);return (y%step===0)?String(y):"";}return "";}}}
+function render(){
+  charts.forEach(c=>c.destroy());charts=[];const B=base();
+  const common=(extra)=>Object.assign({responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:"index",intersect:false},
+    plugins:{legend:{display:false},tooltip:B.tooltip}},extra);
+  // C1 long history
+  {const L=D.kospi_w.map(r=>r[0]),V=D.kospi_w.map(r=>r[1]);
+   const sB=new Array(L.length).fill(null),sC=new Array(L.length).fill(null);
+   D.B_trend_reclaim.forEach(e=>{const i=idxOf(L,e.date);sB[i]=V[i];});D.C_breadth_recovery.forEach(e=>{const i=idxOf(L,e.date);sC[i]=V[i];});
+   const bands=D.bulls.map(b=>({from:idxOf(L,b[0]),to:idxOf(L,b[1]),color:css("--band-up")}));
+   charts.push(new Chart(document.getElementById("c1"),{type:"line",data:{labels:L,datasets:[
+     {label:"코스피",data:V,borderColor:css("--s1"),borderWidth:1.6,pointRadius:0,pointHitRadius:4,tension:0},
+     {label:"신호 B",data:sB,showLine:false,pointRadius:5,pointHoverRadius:7,pointBackgroundColor:css("--s2"),pointBorderColor:B.surf,pointBorderWidth:1.5},
+     {label:"신호 C",data:sC,showLine:false,pointStyle:"triangle",pointRadius:6,pointHoverRadius:8,pointBackgroundColor:css("--s3"),pointBorderColor:B.surf,pointBorderWidth:1.5}]},
+     options:common({scales:{x:{grid:{display:false},ticks:xYearTicks(L,4)},y:{type:"logarithmic",min:250,max:10000,grid:{color:B.grid},
+       afterBuildTicks:ax=>{ax.ticks=[300,500,1000,2000,3000,5000,9000].map(v=>({value:v}));},ticks:{callback:v=>fmt(v)}}},
+       plugins:{legend:{display:false},tooltip:Object.assign({},B.tooltip,{filter:it=>it.raw!=null,callbacks:{label:c=>`${c.dataset.label}: ${fmt(c.raw)}`}}),bands:{items:bands}}})}));}
+  // C2 2024-26 daily
+  {const L=D.kospi_d.map(r=>r[0]),V=D.kospi_d.map(r=>r[1]);
+   const bands=PHASES.map((p,k)=>({from:idxOf(L,p[1]),to:idxOf(L,p[2]),color:k%2?css("--band-alt"):"rgba(0,0,0,0)",label:p[0]}));
+   charts.push(new Chart(document.getElementById("c2"),{type:"line",data:{labels:L,datasets:[{label:"코스피",data:V,borderColor:css("--s1"),borderWidth:1.8,pointRadius:0,pointHitRadius:4,
+     fill:false}]},options:common({scales:{x:{grid:{display:false},ticks:{maxRotation:0,autoSkip:true,maxTicksLimit:6,callback:(v,i)=>L[i].slice(2,7).replace("-",".")}},
+       y:{grid:{color:B.grid},ticks:{callback:v=>fmt(v)}}},
+       plugins:{legend:{display:false},tooltip:Object.assign({},B.tooltip,{callbacks:{label:c=>`코스피 ${fmt(c.raw)}`}}),bands:{items:bands,labelColor:B.ink2,font:"600 11px "+css("--f-mono")}}})}));}
+  // C3 concentration vs breadth
+  {const L=D.top2_d.map(r=>r[0]);
+   charts.push(new Chart(document.getElementById("c3"),{type:"line",data:{labels:L,datasets:[
+     {label:"빅2 비중",data:D.top2_d.map(r=>r[1]),borderColor:css("--s2"),borderWidth:2,pointRadius:0,pointHitRadius:4},
+     {label:"200일선 위 종목",data:D.pct200_d.map(r=>r[1]),borderColor:css("--s1"),borderWidth:2,pointRadius:0,pointHitRadius:4}]},
+     options:common({scales:{x:{grid:{display:false},ticks:{maxRotation:0,autoSkip:true,maxTicksLimit:6,callback:(v,i)=>L[i].slice(2,7).replace("-",".")}},
+       y:{min:0,max:100,grid:{color:B.grid},ticks:{callback:v=>v+"%"}}},
+       plugins:{legend:{display:false},tooltip:Object.assign({},B.tooltip,{callbacks:{label:c=>`${c.dataset.label}: ${c.raw}%`}})}})}));}
+  // C4 hynix + events
+  {const L=D.hynix_w.map(r=>r[0]),V=D.hynix_w.map(r=>r[1]);
+   const items=EVENTS.map((e,k)=>({i:idxOf(L,e[0]),label:String(k+1)}));
+   charts.push(new Chart(document.getElementById("c4"),{type:"line",data:{labels:L,datasets:[{label:"SK하이닉스",data:V,borderColor:css("--s7"),borderWidth:1.8,pointRadius:0,pointHitRadius:4}]},
+     options:common({layout:{padding:{top:14}},scales:{x:{grid:{display:false},ticks:{maxRotation:0,autoSkip:true,maxTicksLimit:6,callback:(v,i)=>L[i].slice(0,7).replace("-",".")}},
+       y:{type:"logarithmic",grid:{color:B.grid},afterBuildTicks:ax=>{ax.ticks=[70000,150000,300000,700000,1500000,3000000].map(v=>({value:v}));},
+       ticks:{callback:v=>(v/1e4)+"만"}}},
+       plugins:{legend:{display:false},tooltip:Object.assign({},B.tooltip,{callbacks:{label:c=>`종가 ${fmt(c.raw)}원`}}),vlines:{items,color:B.ink2,font:"600 10.5px "+css("--f-mono")}}})}));
+   const ol=document.getElementById("evlist");ol.innerHTML="";EVENTS.forEach(e=>{const li=document.createElement("li");li.textContent=`${e[0].slice(2).replaceAll("-",".")} ${e[1]}`;ol.appendChild(li);});}
+  // C5 exports
+  {const L=EXPORTS.map(r=>r[0]);
+   charts.push(new Chart(document.getElementById("c5"),{type:"bar",data:{labels:L,datasets:[{label:"반도체 수출",data:EXPORTS.map(r=>r[1]),backgroundColor:css("--s1"),
+     borderRadius:{topLeft:3,topRight:3},borderSkipped:"bottom",barPercentage:.82,categoryPercentage:.9}]},
+     options:common({interaction:{mode:"nearest",intersect:false,axis:"x"},scales:{x:{grid:{display:false},ticks:{maxRotation:0,autoSkip:false,callback:(v,i)=>L[i].endsWith("-01")?L[i].slice(0,4):""}},
+       y:{beginAtZero:true,grid:{color:B.grid},ticks:{callback:v=>"$"+v+"B"}}},
+       plugins:{legend:{display:false},tooltip:Object.assign({},B.tooltip,{callbacks:{label:c=>{const r=EXPORTS[c.dataIndex];return [`수출 ${r[1]==null?"미확인":"$"+r[1]+"B"}`,`전년 대비 ${r[2]==null?"미확인":(r[2]>0?"+":"")+r[2]+"%"}`];}}})}})}));}
+  // C6 leadership rho
+  {const L=LEAD.map(r=>r[0]),V=LEAD.map(r=>r[1]);
+   charts.push(new Chart(document.getElementById("c6"),{type:"bar",data:{labels:L,datasets:[{label:"순위상관",data:V,
+     backgroundColor:L.map(l=>l.includes("실패")?css("--muted"):css("--s1")),borderRadius:3,barPercentage:.7}]},
+     options:common({indexAxis:"y",layout:{padding:{right:12}},interaction:{mode:"nearest",intersect:true},scales:{x:{min:-0.4,max:0.4,grid:{color:B.grid},ticks:{callback:v=>v.toFixed(1)}},y:{grid:{display:false}}},
+       plugins:{legend:{display:false},tooltip:Object.assign({},B.tooltip,{callbacks:{label:c=>`순위상관 ${c.raw.toFixed(3)}`}}),
+       bands:{items:[{from:-0.154,to:0.158,color:css("--band-alt")}]}}})}));}
+}
+function safeRender(){try{if(window.Chart){Chart.register(bandPlugin,vlinePlugin);render();}}catch(e){console.error(e);}}
+safeRender();
+const mq=window.matchMedia("(prefers-color-scheme: dark)");
+if(mq.addEventListener)mq.addEventListener("change",()=>render());
+new MutationObserver(()=>render()).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
+</script>
