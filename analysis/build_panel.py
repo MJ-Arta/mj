@@ -16,6 +16,21 @@ close=k.pivot(index='Date',columns='Code',values='Close').astype('float32')
 mcap=k.pivot(index='Date',columns='Code',values='Marcap').astype('float64')
 chg=k.pivot(index='Date',columns='Code',values='ChangesRatio').astype('float32')
 amt=k.pivot(index='Date',columns='Code',values='Amount').astype('float64')
+# --- adjusted close: chain the exchange-reported daily change (ChangesRatio), which is computed
+# against the corporate-action-adjusted base price, so splits / bonus / rights issues do not create
+# fake jumps. Fall back to the raw close-to-close return only where ChangesRatio is missing.
+raw=close/close.shift(1)-1
+r=(chg/100).where(chg.notna(), raw)
+r=r.where(close.notna())
+first=close.notna()&close.shift(1).isna()          # first observation (listing / after gap)
+r=r.mask(first,0.0)
+adj=(1+r.fillna(0)).cumprod().where(close.notna()).astype('float64')
+# back-adjust: scale so the latest adjusted price equals the latest actual close (levels stay readable)
+adj=adj*(close.ffill().iloc[-1]/adj.ffill().iloc[-1])
+ca=((raw-chg/100).abs()>0.05)&raw.notna()&chg.notna()
+print('corporate-action-like days corrected:',int(ca.sum().sum()))
+close.to_parquet(OUT+'/close_raw.parquet')
+close=adj                                             # all downstream metrics use adjusted prices
 close.to_parquet(OUT+'/close.parquet'); mcap.to_parquet(OUT+'/mcap.parquet')
 # breadth
 up=(chg>0).sum(1); dn=(chg<0).sum(1)
