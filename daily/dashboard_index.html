@@ -1,0 +1,342 @@
+<meta name="dash-one-writer">
+<style>
+.ks{display:grid;gap:var(--cds-gap-lg);font-family:var(--font-anthropic-sans);color:var(--color-fg)}
+.ks-head h1{font-family:var(--font-anthropic-serif);font-weight:400;font-size:var(--cds-font-size-title);margin:0}
+.ks-take{margin:var(--cds-gap-sm) 0 0;font-size:var(--cds-font-size-body);line-height:1.6;max-width:62ch}
+.ks .ks-take b,.ks .ks-row b{font-weight:600;font-variant-numeric:tabular-nums}
+.ks-fresh{margin:var(--cds-gap-xs) 0 0;font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
+.ks-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,20rem),1fr));gap:var(--cds-gap-md)}
+.ks-card{background:var(--color-panel);border:1px solid var(--color-border-line);border-radius:var(--cds-radius);padding:var(--cds-pad-lg);min-width:0}
+.ks-card h2{font-size:var(--cds-font-size-heading);font-weight:var(--cds-font-weight-medium);margin:0}
+.ks-note{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);margin:var(--cds-gap-xs) 0 var(--cds-gap-md);line-height:1.5}
+.ks-light{display:flex;gap:var(--cds-gap-lg);align-items:center;flex-wrap:wrap}
+.ks-big{font-family:var(--font-anthropic-serif);font-weight:400;font-size:calc(var(--cds-font-size-title) * 1.8);line-height:1;font-variant-numeric:tabular-nums}
+.ks-lamps{display:flex;gap:var(--cds-gap-md)}
+.ks-lamp{display:grid;justify-items:center;gap:var(--cds-gap-xs);font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
+.ks-lamp i{display:block;width:2.4rem;height:2.4rem;border-radius:50%;border:2px solid var(--color-border-line)}
+.ks-lamp.on{color:var(--color-fg);font-weight:600}
+.ks-lamp.l0.on i{background:var(--cds-chart-muted);border-color:var(--cds-chart-muted)}
+.ks-lamp.l50.on i{color:var(--color-warn);background:currentColor;border-color:currentColor}
+.ks-lamp.l100.on i{color:var(--color-ok);background:currentColor;border-color:currentColor}
+.ks-kv{display:grid;grid-template-columns:auto 1fr;gap:var(--cds-gap-xs) var(--cds-gap-md);font-size:var(--cds-font-size-body);margin:0}
+.ks-kv dt{color:var(--color-fg-muted)}
+.ks-kv dd{margin:0;text-align:right;font-variant-numeric:tabular-nums}
+.ks-tblwrap{overflow-x:auto}
+table.ks-tbl{width:100%;border-collapse:collapse;font-size:var(--cds-font-size-caption);font-variant-numeric:tabular-nums}
+.ks-tbl th,.ks-tbl td{padding:var(--cds-pad-xs) var(--cds-pad-sm);border-bottom:1px solid var(--color-border-line);text-align:left;vertical-align:top}
+.ks-tbl th{color:var(--color-fg-muted);font-weight:var(--cds-font-weight-medium)}
+.ks-yes{color:var(--color-ok);font-weight:600}
+.ks-no{color:var(--color-fg-muted)}
+.ks-chart{position:relative;min-height:240px}
+.ks-legend{display:flex;flex-wrap:wrap;gap:var(--cds-gap-xs) var(--cds-gap-md);font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);margin:0 0 var(--cds-gap-sm)}
+.ks-sw{display:inline-block;width:.8rem;height:.2rem;border-radius:2px;vertical-align:middle;margin-right:.35rem;background:var(--cds-chart-muted)}
+.ks-sw.dot{width:.55rem;height:.55rem;border-radius:50%}
+.ks-sw.box{width:.8rem;height:.6rem;border-radius:2px;opacity:.35}
+.ks-tip{position:absolute;top:0;left:0;pointer-events:none;background:var(--cds-surface-popover);border:1px solid var(--cds-border);border-radius:var(--cds-radius);box-shadow:var(--cds-shadow-popover);padding:var(--cds-pad-xs) var(--cds-pad-sm);font-size:var(--cds-font-size-caption);white-space:nowrap;opacity:0}
+.ks-tip .ks-tipd{color:var(--cds-text-secondary)}
+.ks-rules{font-size:var(--cds-font-size-body);line-height:1.6;margin:0;padding-left:1.2rem}
+.ks-rules li{margin-bottom:var(--cds-gap-xs)}
+.ks-fail{display:flex;align-items:center;justify-content:center;gap:.4rem;min-height:240px;color:var(--color-fg-muted);font-size:var(--cds-font-size-caption)}
+.ks-fail i{width:.375rem;height:.375rem;border-radius:50%;background:var(--color-bad);display:inline-block}
+.ks [data-dash-source-state=empty]{color:transparent}
+.ks [data-dash-source-state=refreshing]{opacity:.5;transition:opacity var(--cds-dur-slow)}
+</style>
+
+<div class="ks">
+  <header class="ks-head" id="top">
+    <h1>코스피 신호등</h1>
+    <p class="ks-take" data-variant="cash-zone">지금은 <b>현금</b>입니다. 다음 트리거는 코스피 종가가 50일선 <b data-draw="v" data-source="status" data-field="ma50" data-fmt="num">—</b> 위로 올라서는 것입니다(현재보다 <b data-draw="v" data-source="status" data-field="gap_to_ma50" data-fmt="spct">—</b>). 그러면 FX 신호로 50%가 켜집니다.</p>
+    <p class="ks-take" data-variant="cash-nozone" hidden>지금은 <b>현금</b>입니다. 큰 하락 구간이 아니어서 FX 신호는 쉬는 중입니다. 지수가 200일선 위에 있고 시장 폭이 기준을 넘으면 100%로 들어갑니다.</p>
+    <p class="ks-take" data-variant="fx" hidden>FX 신호로 <b>50%</b>를 보유 중입니다. 진입 <b data-draw="v" data-source="status" data-field="fx_entry_date" data-fmt="date">—</b>(<b data-draw="v" data-source="status" data-field="fx_entry_level" data-fmt="num">—</b>), 200일선 회복 전 손절선은 <b data-draw="v" data-source="status" data-field="fx_stop" data-fmt="num">—</b>, 회복 뒤 청산선은 <b data-draw="v" data-source="status" data-field="exit_level" data-fmt="num">—</b>입니다.</p>
+    <p class="ks-take" data-variant="core" hidden>추세와 시장 폭이 모두 켜져 <b>100%</b> 보유 중입니다. 청산선은 <b data-draw="v" data-source="status" data-field="exit_level" data-fmt="num">—</b>(200일선 아래 여유 구간)입니다.</p>
+    <p class="ks-fresh">지수 <span data-draw="v" data-source="status" data-field="as_of" data-fmt="date">—</span> 종가 · 시장 폭 <span data-draw="v" data-source="status" data-field="breadth_as_of" data-fmt="date">—</span> · 원/달러 <span data-draw="v" data-source="status" data-field="fx_as_of" data-fmt="date">—</span> · 계산 <span data-draw="v" data-source="status" data-field="generated_at_kst" data-fmt="date">—</span> KST</p>
+  </header>
+
+  <section class="ks-grid" id="today">
+    <div class="ks-card" id="light">
+      <h2>오늘의 비중</h2>
+      <p class="ks-note">추세와 시장 폭이 함께 켜지면 100%, FX 신호만 켜지면 50%, 둘 다 꺼지면 현금입니다.</p>
+      <div class="ks-light">
+        <b class="ks-big" data-draw="v" data-source="status" data-field="position" data-fmt="pos">—</b>
+        <div class="ks-lamps" role="list">
+          <div class="ks-lamp l0" data-level="0" role="listitem"><i></i><span>현금</span></div>
+          <div class="ks-lamp l50" data-level="0.5" role="listitem"><i></i><span>FX 50%</span></div>
+          <div class="ks-lamp l100" data-level="1" role="listitem"><i></i><span>본진입 100%</span></div>
+        </div>
+      </div>
+      <p class="ks-note">전 거래일 비중 <span data-draw="v" data-source="status" data-field="position_prev" data-fmt="pos">—</span> · 상태 변화 <span data-draw="ok" data-source="status" data-field="state_changed" data-yes="있음" data-no="없음">—</span></p>
+    </div>
+    <div class="ks-card" id="index">
+      <h2>코스피와 기준선</h2>
+      <p class="ks-note">FX 신호에는 50일선, 추세 판단에는 200일선을 씁니다.</p>
+      <dl class="ks-kv">
+        <dt>코스피 종가</dt><dd><b data-draw="v" data-source="status" data-field="kospi" data-fmt="num">—</b> (<span data-draw="v" data-source="status" data-field="kospi_chg" data-fmt="spct">—</span>)</dd>
+        <dt>50일선</dt><dd><span data-draw="v" data-source="status" data-field="ma50" data-fmt="num">—</span></dd>
+        <dt>200일선</dt><dd><span data-draw="v" data-source="status" data-field="ma200" data-fmt="num">—</span></dd>
+        <dt>청산선(200일선 아래)</dt><dd><span data-draw="v" data-source="status" data-field="exit_level" data-fmt="num">—</span></dd>
+        <dt>1년 고점 대비</dt><dd><span data-draw="v" data-source="status" data-field="dd_from_high" data-fmt="spct">—</span></dd>
+      </dl>
+    </div>
+  </section>
+
+  <section class="ks-card" id="checklist">
+    <h2>조건 점검표</h2>
+    <p class="ks-note">각 단계의 조건과 오늘 값입니다. 기준값은 사전등록 검증(보고서 v4)과 같습니다.</p>
+    <div class="ks-tblwrap">
+      <table class="ks-tbl">
+        <thead><tr><th>단계</th><th>조건</th><th>오늘 값</th><th>판정</th></tr></thead>
+        <tbody>
+          <tr><td>① 관찰 구간</td><td>최근 6개월 안에 1년 고점 대비 <b data-draw="c" data-c="dd" data-cfmt="spct">—</b> 이하, 또는 시장 폭 <b data-draw="c" data-c="zbr" data-cfmt="pct">—</b> 미만</td><td>고점 대비 <span data-draw="v" data-source="status" data-field="dd_from_high" data-fmt="spct">—</span> · 시장 폭 <span data-draw="v" data-source="status" data-field="pct200" data-fmt="pct">—</span></td><td><span data-draw="ok" data-source="status" data-field="zone">—</span></td></tr>
+          <tr><td>② FX · 원화</td><td>원/달러가 6개월 최고치의 <b data-draw="c" data-c="fx" data-cfmt="ratio">—</b>배 이하</td><td><span data-draw="v" data-source="status" data-field="usdkrw" data-fmt="num">—</span> / 최고 <span data-draw="v" data-source="status" data-field="usdkrw_126max" data-fmt="num">—</span> = <span data-draw="v" data-source="status" data-field="fx_ratio" data-fmt="ratio">—</span></td><td><span data-draw="ok" data-source="status" data-field="fx_cond_krw">—</span></td></tr>
+          <tr><td>② FX · 지수</td><td>코스피 종가가 50일선 위</td><td><span data-draw="v" data-source="status" data-field="kospi" data-fmt="num">—</span> vs <span data-draw="v" data-source="status" data-field="ma50" data-fmt="num">—</span></td><td><span data-draw="ok" data-source="status" data-field="fx_cond_ma50">—</span></td></tr>
+          <tr><td>② FX 보유</td><td>위 세 조건이 같은 날 충족되면 진입. 200일선 회복 전에는 진입가의 <b data-draw="c" data-c="stop" data-cfmt="ratio">—</b>배에서 손절</td><td>오늘 신호 <span data-draw="ok" data-source="status" data-field="fx_signal_today" data-yes="켜짐" data-no="꺼짐">—</span></td><td><span data-draw="ok" data-source="status" data-field="fx_trade_open" data-yes="보유 중" data-no="없음">—</span></td></tr>
+          <tr><td>③ 추세</td><td>종가가 200일선 위면 켜짐, 200일선의 <b data-draw="c" data-c="band" data-cfmt="ratio">—</b>배 아래면 꺼짐</td><td><span data-draw="v" data-source="status" data-field="kospi" data-fmt="num">—</span> vs <span data-draw="v" data-source="status" data-field="ma200" data-fmt="num">—</span></td><td><span data-draw="ok" data-source="status" data-field="trend_on" data-yes="켜짐" data-no="꺼짐">—</span></td></tr>
+          <tr><td>③ 시장 폭</td><td>200일선 위 종목 비율 <b data-draw="c" data-c="bron" data-cfmt="pct">—</b> 이상이면 켜짐, <b data-draw="c" data-c="broff" data-cfmt="pct">—</b> 이하면 꺼짐</td><td><span data-draw="v" data-source="status" data-field="pct200" data-fmt="pct">—</span></td><td><span data-draw="ok" data-source="status" data-field="breadth_on" data-yes="켜짐" data-no="꺼짐">—</span></td></tr>
+          <tr><td>③ 본진입</td><td>추세와 시장 폭이 모두 켜짐</td><td>200일선까지 <span data-draw="v" data-source="status" data-field="gap_to_ma200" data-fmt="spct">—</span></td><td><span data-draw="ok" data-source="status" data-field="core_on" data-yes="켜짐" data-no="꺼짐">—</span></td></tr>
+          <tr><td>④ 과열 경고</td><td>경고 <b data-draw="c" data-c="warnmax" data-cfmt="int">—</b>개 중 <b data-draw="c" data-c="warnth" data-cfmt="int">—</b>개 이상이면 레버리지 금지(탐색 단계)</td><td><span data-draw="v" data-source="status" data-field="warn_score" data-fmt="int">—</span>개 켜짐</td><td><span data-draw="warn" data-source="status" data-field="warn_score">—</span></td></tr>
+          <tr><td>참고</td><td>외국인 코스피 20거래일 순매수(검증 안 된 참고 지표)</td><td><span data-draw="v" data-source="status" data-field="foreign_20d_tn" data-fmt="tn">—</span> · 5일 <span data-draw="v" data-source="status" data-field="foreign_5d_tn" data-fmt="tn">—</span></td><td>참고용</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="ks-grid" id="charts">
+    <div class="ks-card" id="chart-kospi-card">
+      <h2>코스피와 이동평균, 보유 구간</h2>
+      <p class="ks-note">최근 약 1년. 음영은 규칙상 보유 구간(옅으면 50%, 진하면 100%), 점은 FX 신호가 켜진 날입니다.</p>
+      <p class="ks-legend"><span><i class="ks-sw" data-series="0"></i>코스피</span><span><i class="ks-sw" data-series="1"></i>50일선</span><span><i class="ks-sw" data-series="2"></i>200일선</span><span><i class="ks-sw dot" data-series="3"></i>FX 신호</span></p>
+      <div class="ks-chart dash-skeleton" id="chart-kospi" data-draw="chart-kospi" data-source="history"></div>
+    </div>
+    <div class="ks-card" id="chart-breadth-card">
+      <h2>시장 폭: 200일선 위 종목 비율</h2>
+      <p class="ks-note">코스피 보통주 기준, 액면분할을 반영한 가격으로 계산합니다. 점선은 관찰·꺼짐·켜짐 기준입니다.</p>
+      <p class="ks-legend"><span><i class="ks-sw" data-series="0"></i>200일선 위 종목 비율</span></p>
+      <div class="ks-chart dash-skeleton" id="chart-breadth" data-draw="chart-breadth" data-source="history"></div>
+    </div>
+    <div class="ks-card" id="chart-fx-card">
+      <h2>원/달러와 FX 기준선</h2>
+      <p class="ks-note">원/달러가 점선(6개월 최고치의 <b data-draw="c" data-c="fx" data-cfmt="ratio">—</b>배) 아래면 원화 강세 조건을 충족합니다. 전 거래일 환율을 씁니다.</p>
+      <p class="ks-legend"><span><i class="ks-sw" data-series="0"></i>원/달러</span><span><i class="ks-sw" data-series="4"></i>FX 기준선</span></p>
+      <div class="ks-chart dash-skeleton" id="chart-fx" data-draw="chart-fx" data-source="history"></div>
+    </div>
+  </section>
+
+  <section class="ks-card" id="trades">
+    <h2>FX 신호 거래 기록</h2>
+    <p class="ks-note">같은 규칙을 최근 데이터에 다시 적용한 진입·청산 기록입니다.</p>
+    <div class="ks-tblwrap">
+      <table class="ks-tbl" data-source="trades" data-row-key="entry">
+        <thead><tr><th data-field="entry">진입일</th><th data-field="entry_lvl">진입 지수</th><th data-field="exit">청산일</th><th data-field="exit_lvl">청산 지수</th><th data-field="ret">수익률</th></tr></thead>
+        <tbody data-draw="trades"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="ks-card" id="rules">
+    <h2>읽는 법과 증거 수준</h2>
+    <ul class="ks-rules">
+      <li><b>FX 신호</b>는 사전등록한 후보 가운데 진입 판별이 가장 나았습니다. 과거 대세상승을 모두 이 단계에서 잡았지만, 성공률 우위는 약하고 가장 최근 신호는 실패했습니다.</li>
+      <li><b>추세와 시장 폭</b> 결합은 사전등록 기준을 통과한 유일한 보유 규칙입니다. 큰 하락을 크게 줄였지만, 대세상승 초반은 늦게 탑니다.</li>
+      <li>두 규칙을 합친 50%/100% 비중은 결과를 본 뒤 만든 조합이라 앞으로 나오는 신호로 검증해야 합니다.</li>
+      <li>원/달러 최근 값은 공개 피드(야후 기준)로 채우고, 과거 값은 미 연준 기준 환율을 씁니다. 둘 사이에 작은 차이가 있습니다.</li>
+      <li>투자 권유가 아닙니다. 과거 데이터에서 찾은 규칙을 매일 같은 방식으로 계산해 보여줄 뿐입니다.</li>
+    </ul>
+    <p class="ks-note">전체 분석: <a href="https://claude.ai/artifact/BFfH99jFhWu9BfjYQve5pn" target="_blank" rel="noopener">코스피 사이클 포착 지도</a></p>
+  </section>
+</div>
+
+<script>
+window.KS = (function () {
+  const nf = new Intl.NumberFormat('ko-KR', {maximumFractionDigits: 2});
+  const C = {dd: -0.20, zbr: 0.20, fx: 0.95, stop: 0.90, band: 0.97, bron: 0.60, broff: 0.40, warnmax: 5, warnth: 3};
+  const f = {
+    num: (v) => nf.format(Number(v)),
+    pct: (v) => (Number(v) * 100).toFixed(1) + '%',
+    spct: (v) => (Number(v) > 0 ? '+' : '') + (Number(v) * 100).toFixed(1) + '%',
+    ratio: (v) => Number(v).toFixed(2),
+    pos: (v) => Math.round(Number(v) * 100) + '%',
+    tn: (v) => (Number(v) > 0 ? '+' : '') + Number(v).toFixed(1) + '조 원',
+    int: (v) => String(Math.round(Number(v))),
+    date: (v) => String(v)
+  };
+  const row = () => {
+    const d = dash.data('status');
+    return d.status === 'ok' && d.data && d.data.length ? d.data[0] : null;
+  };
+  return {nf, C, f, row};
+})();
+</script>
+
+<script>
+dash.draw('v', (el) => {
+  const r = KS.row();
+  const v = r ? r[el.dataset.field] : null;
+  const fmt = KS.f[el.dataset.fmt || 'num'];
+  el.textContent = v === null || v === undefined || v === '' ? '—' : fmt(v);
+});
+dash.draw('c', (el) => {
+  const v = KS.C[el.dataset.c];
+  el.textContent = v === undefined ? '—' : KS.f[el.dataset.cfmt || 'num'](v);
+});
+dash.draw('ok', (el) => {
+  const r = KS.row();
+  const v = r ? Number(r[el.dataset.field]) : NaN;
+  el.classList.toggle('ks-yes', v === 1);
+  el.classList.toggle('ks-no', v === 0);
+  el.textContent = Number.isNaN(v) ? '—' : v === 1 ? (el.dataset.yes || '충족') : (el.dataset.no || '미충족');
+});
+dash.draw('warn', (el) => {
+  const r = KS.row();
+  const v = r ? Number(r.warn_score) : NaN;
+  el.classList.toggle('ks-no', v < KS.C.warnth);
+  el.textContent = Number.isNaN(v) ? '—' : v >= KS.C.warnth ? '레버리지 금지' : '정상';
+});
+dash.onData(() => {
+  const r = KS.row();
+  const pos = r ? Number(r.position) : null;
+  const variant = !r ? 'cash-zone' : pos >= 1 ? 'core' : pos > 0 ? 'fx' : Number(r.zone) === 1 ? 'cash-zone' : 'cash-nozone';
+  document.querySelectorAll('[data-variant]').forEach((p) => { p.hidden = p.dataset.variant !== variant; });
+  document.querySelectorAll('.ks-lamp').forEach((l) => { l.classList.toggle('on', pos !== null && Math.abs(Number(l.dataset.level) - pos) < 1e-9); });
+  const cols = [dash.colors[0], dash.colors[1], dash.colors[2], dash.colors[3], dash.colors[1]];
+  document.querySelectorAll('.ks-sw[data-series]').forEach((s) => { s.style.background = cols[Number(s.dataset.series)] || ''; });
+});
+</script>
+
+<script>
+window.KSline = function (el, rows, o) {
+  el.replaceChildren();
+  el.classList.remove('dash-skeleton');
+  const W = Math.max(260, el.clientWidth || 600), H = 240, top = 12, bottom = 24, mr = 10;
+  const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img').attr('aria-label', o.label);
+  const vals = [];
+  rows.forEach((r) => o.series.forEach((s) => { const v = r[s.key]; if (v !== null && Number.isFinite(v)) vals.push(v); }));
+  (o.refs || []).forEach((rf) => vals.push(rf.y));
+  const y = d3.scaleLinear(d3.extent(vals), [H - bottom, top]).nice();
+  const ticks = y.ticks(5);
+  const probe = svg.append('text').attr('font-size', 11);
+  let lw = 0;
+  ticks.forEach((t) => { probe.text(o.yfmt(t)); lw = Math.max(lw, probe.node().getComputedTextLength()); });
+  probe.remove();
+  const ml = Math.ceil(lw) + 10;
+  const x = d3.scaleUtc(d3.extent(rows, (r) => r.date), [ml, W - mr]);
+  if (o.shade) {
+    const g = svg.append('g');
+    let start = null, level = 0;
+    rows.forEach((r, i) => {
+      const lv = r[o.shade] || 0;
+      if (lv !== level) {
+        if (level > 0 && start) g.append('rect').attr('x', x(start)).attr('y', top).attr('width', Math.max(1, x(r.date) - x(start))).attr('height', H - bottom - top).attr('fill', dash.colors[1]).attr('opacity', level >= 1 ? 0.22 : 0.10);
+        start = lv > 0 ? r.date : null; level = lv;
+      }
+      if (i === rows.length - 1 && level > 0 && start) g.append('rect').attr('x', x(start)).attr('y', top).attr('width', Math.max(1, x(r.date) - x(start))).attr('height', H - bottom - top).attr('fill', dash.colors[1]).attr('opacity', level >= 1 ? 0.22 : 0.10);
+    });
+  }
+  svg.append('g').selectAll('line').data(ticks).join('line').attr('x1', ml).attr('x2', W - mr).attr('y1', (t) => y(t)).attr('y2', (t) => y(t)).attr('stroke', 'var(--cds-chart-grid)').attr('stroke-width', 1);
+  svg.append('g').selectAll('text').data(ticks).join('text').attr('x', ml - 6).attr('y', (t) => y(t)).attr('dy', '0.32em').attr('text-anchor', 'end').attr('font-size', 11).attr('fill', 'var(--color-fg-muted)').text(o.yfmt);
+  const xt = x.ticks(Math.max(2, Math.min(6, Math.floor((W - ml) / 80))));
+  svg.append('g').selectAll('text').data(xt).join('text').attr('x', (d) => x(d)).attr('y', H - 6).attr('text-anchor', 'middle').attr('font-size', 11).attr('fill', 'var(--color-fg-muted)').text(d3.utcFormat('%y.%m'));
+  (o.refs || []).forEach((rf) => {
+    svg.append('line').attr('x1', ml).attr('x2', W - mr).attr('y1', y(rf.y)).attr('y2', y(rf.y)).attr('stroke', 'var(--cds-chart-reference)').attr('stroke-dasharray', '4 3');
+  });
+  o.series.forEach((s) => {
+    const line = d3.line().defined((r) => r[s.key] !== null && Number.isFinite(r[s.key])).x((r) => x(r.date)).y((r) => y(r[s.key]));
+    svg.append('path').datum(rows).attr('d', line).attr('fill', 'none').attr('stroke', s.color).attr('stroke-width', s.w || 2).attr('stroke-linecap', 'round').attr('stroke-linejoin', 'round').attr('stroke-dasharray', s.dash || null);
+  });
+  if (o.marks) {
+    svg.append('g').selectAll('circle').data(rows.filter((r) => r[o.marks] > 0 && Number.isFinite(r[o.series[0].key]))).join('circle')
+      .attr('cx', (r) => x(r.date)).attr('cy', (r) => y(r[o.series[0].key])).attr('r', 4.5).attr('fill', dash.colors[3]).attr('stroke', 'var(--color-panel)').attr('stroke-width', 2);
+  }
+  const rule = svg.append('line').attr('y1', top).attr('y2', H - bottom).attr('stroke', 'var(--cds-chart-axis)').style('opacity', 0);
+  const dot = svg.append('circle').attr('r', 4).attr('fill', o.series[0].color).attr('stroke', 'var(--color-panel)').attr('stroke-width', 2).style('opacity', 0);
+  const tip = d3.select(el).append('div').attr('class', 'ks-tip');
+  const bis = d3.bisector((r) => r.date).center;
+  svg.append('rect').attr('x', ml).attr('y', 0).attr('width', W - ml - mr).attr('height', H).attr('fill', 'transparent')
+    .on('pointermove', (ev) => {
+      const [px] = d3.pointer(ev);
+      const r = rows[bis(rows, x.invert(px))];
+      if (!r) return;
+      const cx = x(r.date);
+      rule.attr('x1', cx).attr('x2', cx).style('opacity', 1);
+      const v0 = r[o.series[0].key];
+      if (v0 !== null && Number.isFinite(v0)) dot.attr('cx', cx).attr('cy', y(v0)).style('opacity', 1); else dot.style('opacity', 0);
+      tip.selectAll('*').remove();
+      tip.append('div').attr('class', 'ks-tipd').text(d3.utcFormat('%Y-%m-%d')(r.date));
+      o.tip(r).forEach(([lab, val, col]) => {
+        const line = tip.append('div');
+        if (col) line.append('span').attr('class', 'ks-sw').style('background', col);
+        line.append('span').text(lab + ' ' + val);
+      });
+      const tw = tip.node().offsetWidth, scale = el.clientWidth / W;
+      let left = cx * scale + 12;
+      if (left + tw > el.clientWidth) left = cx * scale - tw - 12;
+      tip.style('left', Math.max(0, left) + 'px').style('top', '8px').style('opacity', 1);
+    })
+    .on('pointerleave', () => { tip.style('opacity', 0); rule.style('opacity', 0); dot.style('opacity', 0); });
+};
+window.KSrows = function () {
+  const d = dash.data('history');
+  if (d.status !== 'ok') return {status: d.status, rows: []};
+  const num = (v) => (v === null || v === undefined || v === '' ? null : Number(v));
+  const rows = d.data.map((r) => ({date: new Date(String(r.date).slice(0, 10) + 'T00:00:00Z'), kospi: num(r.kospi), ma50: num(r.ma50), ma200: num(r.ma200),
+    pct200: num(r.pct200) === null ? null : num(r.pct200) * 100, fx: num(r.fx), fx_th: num(r.fx_th), pos: num(r.pos) || 0, fxsig: num(r.fxsig) || 0}));
+  return {status: 'ok', rows};
+};
+window.KSfail = function (el, status) {
+  el.replaceChildren();
+  if (status === 'error' || status === 'connect') {
+    el.classList.remove('dash-skeleton');
+    const box = document.createElement('div'); box.className = 'ks-fail';
+    const i = document.createElement('i'); const s = document.createElement('span'); s.textContent = 'Failed to load';
+    box.append(i, s); el.append(box);
+  }
+};
+</script>
+
+<script>
+dash.draw('chart-kospi', (el) => {
+  const h = KSrows();
+  if (h.status !== 'ok') { KSfail(el, h.status); return; }
+  const nf = KS.nf;
+  KSline(el, h.rows, {
+    label: '코스피와 50일선, 200일선',
+    series: [{key: 'kospi', color: dash.colors[0]}, {key: 'ma50', color: dash.colors[1], w: 1.5}, {key: 'ma200', color: dash.colors[2], w: 1.5}],
+    shade: 'pos', marks: 'fxsig', yfmt: (v) => nf.format(v),
+    tip: (r) => [['코스피', r.kospi === null ? '—' : nf.format(r.kospi), dash.colors[0]], ['50일선', r.ma50 === null ? '—' : nf.format(Math.round(r.ma50)), dash.colors[1]],
+      ['200일선', r.ma200 === null ? '—' : nf.format(Math.round(r.ma200)), dash.colors[2]], ['비중', Math.round(r.pos * 100) + '%', null]]
+  });
+});
+dash.draw('chart-breadth', (el) => {
+  const h = KSrows();
+  if (h.status !== 'ok') { KSfail(el, h.status); return; }
+  KSline(el, h.rows, {
+    label: '200일선 위 종목 비율',
+    series: [{key: 'pct200', color: dash.colors[0]}],
+    refs: [{y: KS.C.zbr * 100}, {y: KS.C.broff * 100}, {y: KS.C.bron * 100}],
+    yfmt: (v) => v + '%',
+    tip: (r) => [['200일선 위 종목', r.pct200 === null ? '—' : r.pct200.toFixed(1) + '%', null]]
+  });
+});
+dash.draw('chart-fx', (el) => {
+  const h = KSrows();
+  if (h.status !== 'ok') { KSfail(el, h.status); return; }
+  const nf = KS.nf;
+  KSline(el, h.rows, {
+    label: '원/달러와 FX 기준선',
+    series: [{key: 'fx', color: dash.colors[0]}, {key: 'fx_th', color: dash.colors[1], w: 1.5, dash: '5 4'}],
+    yfmt: (v) => nf.format(v),
+    tip: (r) => [['원/달러', r.fx === null ? '—' : nf.format(r.fx), dash.colors[0]], ['FX 기준선', r.fx_th === null ? '—' : nf.format(Math.round(r.fx_th)), dash.colors[1]]]
+  });
+});
+dash.draw('trades', (tb) => {
+  const d = dash.data('trades');
+  tb.replaceChildren();
+  if (d.status !== 'ok') return;
+  const nf = KS.nf;
+  d.data.slice().reverse().forEach((t) => {
+    const tr = document.createElement('tr');
+    const cells = [String(t.entry), nf.format(Number(t.entry_lvl)), String(t.exit), nf.format(Number(t.exit_lvl)), (Number(t.ret) > 0 ? '+' : '') + (Number(t.ret) * 100).toFixed(1) + '%'];
+    cells.forEach((c) => { const td = document.createElement('td'); td.textContent = c; tr.append(td); });
+    tb.append(tr);
+  });
+});
+</script>
