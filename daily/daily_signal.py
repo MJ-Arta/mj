@@ -164,6 +164,11 @@ status={'as_of':out['as_of'],'breadth_as_of':out['breadth_as_of'],'fx_as_of':out
  'warn_top2_up':int(bool(out['warn']['top2_up'])),'warn_vol_up':int(bool(out['warn']['vol_up'])),'warn_fx_weak':int(bool(out['warn']['fx_weak'])),
  'gap_to_ma50':tg['fx_gap_to_ma50_pct'],'gap_to_ma200':tg['core_gap_to_ma200_pct'],
  'fx_entry_date':fe.get('date'),'fx_entry_level':fe.get('level'),'fx_stop':fe.get('stop'),
+ 'krw_strength':r2(1-out['fx_ratio'],4) if out['fx_ratio'] is not None else None,
+ 'kospi_vs_ma50':r2(out['kospi']/out['ma50']-1,4),'kospi_vs_ma200':r2(out['kospi']/out['ma200']-1,4),
+ 'breadth_to_on':r2(0.60-out['pct200'],4) if out['pct200'] is not None else None,
+ 'fx_conds_met':int(out['zone'])+int(out['fx_ratio'] is not None and out['fx_ratio']<=0.95)+int(out['kospi']>out['ma50']),
+ 'core_conds_met':int(out['trend_on'])+int(out['breadth_on']),
  'foreign_20d_tn':ffl.get('net_20d_krw_tn'),'foreign_5d_tn':ffl.get('net_5d_krw_tn'),'foreign_as_of':ffl.get('as_of')}
 json.dump([status],open(os.path.join(D,'status.json'),'w'),ensure_ascii=False)
 hist=[dict(zip(out['history'].keys(),vals)) for vals in zip(*out['history'].values())]

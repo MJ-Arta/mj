@@ -40,106 +40,190 @@ table.ks-tbl{width:100%;border-collapse:collapse;font-size:var(--cds-font-size-c
 .ks-fail i{width:.375rem;height:.375rem;border-radius:50%;background:var(--color-bad);display:inline-block}
 .ks [data-dash-source-state=empty]{color:transparent}
 .ks [data-dash-source-state=refreshing]{opacity:.5;transition:opacity var(--cds-dur-slow)}
+.ks-hero{display:flex;gap:var(--cds-gap-lg);align-items:center;flex-wrap:wrap}
+.ks-herotext{flex:1 1 18rem;min-width:0}
+.ks-eyebrow{margin:0;font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
+.ks-hero .ks-big{margin:var(--cds-gap-xs) 0 0;display:flex;align-items:baseline;gap:var(--cds-gap-sm);flex-wrap:wrap}
+.ks-hero .ks-big b{font-weight:400}
+.ks-stateword{font-family:var(--font-anthropic-sans);font-size:var(--cds-font-size-heading);color:var(--color-fg-muted)}
+.ks-hero .ks-lamp i{width:3.2rem;height:3.2rem}
+.ks-steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,16rem),1fr));gap:var(--cds-gap-md)}
+.ks-stephead{display:flex;align-items:center;gap:var(--cds-gap-sm)}
+.ks-stephead h2{flex:1}
+.ks-stephead h2 small{font-weight:400;font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);margin-left:.25rem}
+.ks-stepno{display:inline-grid;place-items:center;width:1.6rem;height:1.6rem;border-radius:50%;border:1px solid var(--color-border-line);font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
+.ks-pill{display:inline-block;padding:.1rem .55rem;border-radius:999px;border:1px solid currentColor;font-size:var(--cds-font-size-caption);white-space:nowrap}
+.ks-pill.done{color:var(--color-ok)}
+.ks-pill.part{color:var(--color-warn)}
+.ks-pill.none{color:var(--color-fg-muted)}
+.ks-cd{display:flex;gap:.45rem;margin:var(--cds-gap-md) 0 var(--cds-gap-sm);min-height:1rem}
+.ks-cd i{display:block;width:1rem;height:1rem;border-radius:50%;border:2px solid var(--color-border-line)}
+.ks-cd i.on{color:var(--color-ok);background:currentColor;border-color:currentColor}
+.ks-need{margin:var(--cds-gap-xs) 0 0;font-size:var(--cds-font-size-body);line-height:1.5}
+.ks-need.ks-done{color:var(--color-ok)}
+.ks .ks-need b,.ks .ks-gfoot b{font-weight:600;font-variant-numeric:tabular-nums}
+.ks-gauges{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,17rem),1fr));gap:var(--cds-gap-lg) var(--cds-gap-xl)}
+.ks-g{display:grid;gap:var(--cds-gap-sm);min-width:0}
+.ks-ghead{display:flex;justify-content:space-between;align-items:baseline;gap:var(--cds-gap-sm);font-size:var(--cds-font-size-body);font-weight:var(--cds-font-weight-medium)}
+.ks-ghead small{font-weight:400;color:var(--color-fg-muted);font-size:var(--cds-font-size-caption);margin-left:.3rem}
+.ks-gauge{position:relative;height:1.25rem;display:flex;align-items:center}
+.ks-track{position:relative;width:100%;height:.7rem;border-radius:999px;background:var(--cds-chart-grid)}
+.ks-fill{position:absolute;left:0;top:0;bottom:0;border-radius:999px;background:var(--ks-acc,var(--cds-chart-muted))}
+.ks-fill.met{color:var(--color-ok);background:currentColor}
+.ks-tick{position:absolute;top:-.3rem;bottom:-.3rem;width:2px;margin-left:-1px;background:var(--cds-chart-reference)}
+.ks-tick.main{width:3px;margin-left:-1.5px;background:var(--color-fg)}
+.ks-now{position:absolute;top:50%;width:1.05rem;height:1.05rem;border-radius:50%;background:var(--color-panel);border:3px solid var(--ks-acc,var(--color-fg));transform:translate(-50%,-50%)}
+.ks-now.met{border-color:var(--color-ok)}
+.ks-gfoot{margin:0;font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
+.ks-wdots{display:flex;align-items:center;gap:.4rem;min-height:1.25rem}
+.ks-wdots i{display:block;width:1rem;height:1rem;border-radius:50%;border:2px solid var(--color-border-line)}
+.ks-wdots i.on{color:var(--color-warn);background:currentColor;border-color:currentColor}
+.ks-wdots i.hot.on{color:var(--color-bad)}
+.ks-wdots .sep{width:2px;height:1.3rem;background:var(--color-fg);margin:0 .15rem}
+.ks-details summary{cursor:pointer;font-size:var(--cds-font-size-heading);font-weight:var(--cds-font-weight-medium)}
+.ks-details summary:focus-visible{outline:2px solid var(--color-fg);outline-offset:2px}
 </style>
 
 <div class="ks">
   <header class="ks-head" id="top">
     <h1>코스피 신호등</h1>
-    <p class="ks-take" data-variant="cash-zone">지금은 <b>현금</b>입니다. 다음 트리거는 코스피 종가가 50일선 <b data-draw="v" data-source="status" data-field="ma50" data-fmt="num">—</b> 위로 올라서는 것입니다(현재보다 <b data-draw="v" data-source="status" data-field="gap_to_ma50" data-fmt="spct">—</b>). 그러면 FX 신호로 50%가 켜집니다.</p>
-    <p class="ks-take" data-variant="cash-nozone" hidden>지금은 <b>현금</b>입니다. 큰 하락 구간이 아니어서 FX 신호는 쉬는 중입니다. 지수가 200일선 위에 있고 시장 폭이 기준을 넘으면 100%로 들어갑니다.</p>
-    <p class="ks-take" data-variant="fx" hidden>FX 신호로 <b>50%</b>를 보유 중입니다. 진입 <b data-draw="v" data-source="status" data-field="fx_entry_date" data-fmt="date">—</b>(<b data-draw="v" data-source="status" data-field="fx_entry_level" data-fmt="num">—</b>), 200일선 회복 전 손절선은 <b data-draw="v" data-source="status" data-field="fx_stop" data-fmt="num">—</b>, 회복 뒤 청산선은 <b data-draw="v" data-source="status" data-field="exit_level" data-fmt="num">—</b>입니다.</p>
-    <p class="ks-take" data-variant="core" hidden>추세와 시장 폭이 모두 켜져 <b>100%</b> 보유 중입니다. 청산선은 <b data-draw="v" data-source="status" data-field="exit_level" data-fmt="num">—</b>(200일선 아래 여유 구간)입니다.</p>
-    <p class="ks-fresh">지수 <span data-draw="v" data-source="status" data-field="as_of" data-fmt="date">—</span> 종가 · 시장 폭 <span data-draw="v" data-source="status" data-field="breadth_as_of" data-fmt="date">—</span> · 원/달러 <span data-draw="v" data-source="status" data-field="fx_as_of" data-fmt="date">—</span> · 계산 <span data-draw="v" data-source="status" data-field="generated_at_kst" data-fmt="date">—</span> KST</p>
+    <p class="ks-fresh">지수 <span data-draw="v" data-source="status" data-field="as_of" data-fmt="date">—</span> 종가 기준 · 시장 폭 <span data-draw="v" data-source="status" data-field="breadth_as_of" data-fmt="date">—</span> · 원/달러 <span data-draw="v" data-source="status" data-field="fx_as_of" data-fmt="date">—</span> · 계산 <span data-draw="v" data-source="status" data-field="generated_at_kst" data-fmt="date">—</span> KST</p>
   </header>
 
-  <section class="ks-grid" id="today">
-    <div class="ks-card" id="light">
-      <h2>오늘의 비중</h2>
-      <p class="ks-note">추세와 시장 폭이 함께 켜지면 100%, FX 신호만 켜지면 50%, 둘 다 꺼지면 현금입니다.</p>
-      <div class="ks-light">
-        <b class="ks-big" data-draw="v" data-source="status" data-field="position" data-fmt="pos">—</b>
-        <div class="ks-lamps" role="list">
-          <div class="ks-lamp l0" data-level="0" role="listitem"><i></i><span>현금</span></div>
-          <div class="ks-lamp l50" data-level="0.5" role="listitem"><i></i><span>FX 50%</span></div>
-          <div class="ks-lamp l100" data-level="1" role="listitem"><i></i><span>본진입 100%</span></div>
-        </div>
-      </div>
-      <p class="ks-note">전 거래일 비중 <span data-draw="v" data-source="status" data-field="position_prev" data-fmt="pos">—</span> · 상태 변화 <span data-draw="ok" data-source="status" data-field="state_changed" data-yes="있음" data-no="없음">—</span></p>
+  <section class="ks-card ks-hero" id="now">
+    <div class="ks-lamps" role="list" aria-label="오늘의 비중">
+      <div class="ks-lamp l0" data-level="0" role="listitem"><i></i><span>현금</span></div>
+      <div class="ks-lamp l50" data-level="0.5" role="listitem"><i></i><span>절반 매수</span></div>
+      <div class="ks-lamp l100" data-level="1" role="listitem"><i></i><span>전부 매수</span></div>
     </div>
-    <div class="ks-card" id="index">
-      <h2>코스피와 기준선</h2>
-      <p class="ks-note">FX 신호에는 50일선, 추세 판단에는 200일선을 씁니다.</p>
-      <dl class="ks-kv">
-        <dt>코스피 종가</dt><dd><b data-draw="v" data-source="status" data-field="kospi" data-fmt="num">—</b> (<span data-draw="v" data-source="status" data-field="kospi_chg" data-fmt="spct">—</span>)</dd>
-        <dt>50일선</dt><dd><span data-draw="v" data-source="status" data-field="ma50" data-fmt="num">—</span></dd>
-        <dt>200일선</dt><dd><span data-draw="v" data-source="status" data-field="ma200" data-fmt="num">—</span></dd>
-        <dt>청산선(200일선 아래)</dt><dd><span data-draw="v" data-source="status" data-field="exit_level" data-fmt="num">—</span></dd>
-        <dt>1년 고점 대비</dt><dd><span data-draw="v" data-source="status" data-field="dd_from_high" data-fmt="spct">—</span></dd>
-      </dl>
+    <div class="ks-herotext">
+      <p class="ks-eyebrow">오늘 규칙이 말하는 주식 비중</p>
+      <p class="ks-big"><b data-draw="v" data-source="status" data-field="position" data-fmt="pos">—</b> <span class="ks-stateword" data-state="0">현금으로 기다리는 중</span><span class="ks-stateword" data-state="50" hidden>절반 매수 중</span><span class="ks-stateword" data-state="100" hidden>전부 매수 중</span></p>
+      <p class="ks-take" data-variant="cash-zone">다음 신호까지: 코스피가 <b data-draw="v" data-source="status" data-field="ma50" data-fmt="num">—</b>(50일 평균선)까지 <b data-draw="v" data-source="status" data-field="gap_to_ma50" data-fmt="spct">—</b> 오르면 <b>첫 매수 신호(절반 매수)</b>가 켜집니다.</p>
+      <p class="ks-take" data-variant="cash-nozone" hidden>지금은 크게 떨어진 뒤가 아니라서 첫 매수 신호는 쉬는 중입니다. 코스피가 200일 평균선 위로 올라가고 오르는 종목이 충분히 많아지면 전부 매수가 켜집니다.</p>
+      <p class="ks-take" data-variant="fx" hidden>첫 매수 신호로 절반을 사 둔 상태입니다(매수일 <b data-draw="v" data-source="status" data-field="fx_entry_date" data-fmt="date">—</b>). 코스피가 <b data-draw="v" data-source="status" data-field="fx_stop" data-fmt="num">—</b> 아래로 내려가면 팝니다. 200일 평균선을 넘은 뒤에는 <b data-draw="v" data-source="status" data-field="exit_level" data-fmt="num">—</b>가 매도선입니다.</p>
+      <p class="ks-take" data-variant="core" hidden>본격 상승이 확인되어 전부 매수 상태입니다. 코스피가 <b data-draw="v" data-source="status" data-field="exit_level" data-fmt="num">—</b> 아래로 내려가면 팝니다.</p>
     </div>
   </section>
 
-  <section class="ks-card" id="checklist">
-    <h2>조건 점검표</h2>
-    <p class="ks-note">각 단계의 조건과 오늘 값입니다. 기준값은 사전등록 검증(보고서 v4)과 같습니다.</p>
-    <div class="ks-tblwrap">
-      <table class="ks-tbl">
-        <thead><tr><th>단계</th><th>조건</th><th>오늘 값</th><th>판정</th></tr></thead>
-        <tbody>
-          <tr><td>① 관찰 구간</td><td>최근 6개월 안에 1년 고점 대비 <b data-draw="c" data-c="dd" data-cfmt="spct">—</b> 이하, 또는 시장 폭 <b data-draw="c" data-c="zbr" data-cfmt="pct">—</b> 미만</td><td>고점 대비 <span data-draw="v" data-source="status" data-field="dd_from_high" data-fmt="spct">—</span> · 시장 폭 <span data-draw="v" data-source="status" data-field="pct200" data-fmt="pct">—</span></td><td><span data-draw="ok" data-source="status" data-field="zone">—</span></td></tr>
-          <tr><td>② FX · 원화</td><td>원/달러가 6개월 최고치의 <b data-draw="c" data-c="fx" data-cfmt="ratio">—</b>배 이하</td><td><span data-draw="v" data-source="status" data-field="usdkrw" data-fmt="num">—</span> / 최고 <span data-draw="v" data-source="status" data-field="usdkrw_126max" data-fmt="num">—</span> = <span data-draw="v" data-source="status" data-field="fx_ratio" data-fmt="ratio">—</span></td><td><span data-draw="ok" data-source="status" data-field="fx_cond_krw">—</span></td></tr>
-          <tr><td>② FX · 지수</td><td>코스피 종가가 50일선 위</td><td><span data-draw="v" data-source="status" data-field="kospi" data-fmt="num">—</span> vs <span data-draw="v" data-source="status" data-field="ma50" data-fmt="num">—</span></td><td><span data-draw="ok" data-source="status" data-field="fx_cond_ma50">—</span></td></tr>
-          <tr><td>② FX 보유</td><td>위 세 조건이 같은 날 충족되면 진입. 200일선 회복 전에는 진입가의 <b data-draw="c" data-c="stop" data-cfmt="ratio">—</b>배에서 손절</td><td>오늘 신호 <span data-draw="ok" data-source="status" data-field="fx_signal_today" data-yes="켜짐" data-no="꺼짐">—</span></td><td><span data-draw="ok" data-source="status" data-field="fx_trade_open" data-yes="보유 중" data-no="없음">—</span></td></tr>
-          <tr><td>③ 추세</td><td>종가가 200일선 위면 켜짐, 200일선의 <b data-draw="c" data-c="band" data-cfmt="ratio">—</b>배 아래면 꺼짐</td><td><span data-draw="v" data-source="status" data-field="kospi" data-fmt="num">—</span> vs <span data-draw="v" data-source="status" data-field="ma200" data-fmt="num">—</span></td><td><span data-draw="ok" data-source="status" data-field="trend_on" data-yes="켜짐" data-no="꺼짐">—</span></td></tr>
-          <tr><td>③ 시장 폭</td><td>200일선 위 종목 비율 <b data-draw="c" data-c="bron" data-cfmt="pct">—</b> 이상이면 켜짐, <b data-draw="c" data-c="broff" data-cfmt="pct">—</b> 이하면 꺼짐</td><td><span data-draw="v" data-source="status" data-field="pct200" data-fmt="pct">—</span></td><td><span data-draw="ok" data-source="status" data-field="breadth_on" data-yes="켜짐" data-no="꺼짐">—</span></td></tr>
-          <tr><td>③ 본진입</td><td>추세와 시장 폭이 모두 켜짐</td><td>200일선까지 <span data-draw="v" data-source="status" data-field="gap_to_ma200" data-fmt="spct">—</span></td><td><span data-draw="ok" data-source="status" data-field="core_on" data-yes="켜짐" data-no="꺼짐">—</span></td></tr>
-          <tr><td>④ 과열 경고</td><td>경고 <b data-draw="c" data-c="warnmax" data-cfmt="int">—</b>개 중 <b data-draw="c" data-c="warnth" data-cfmt="int">—</b>개 이상이면 레버리지 금지(탐색 단계)</td><td><span data-draw="v" data-source="status" data-field="warn_score" data-fmt="int">—</span>개 켜짐</td><td><span data-draw="warn" data-source="status" data-field="warn_score">—</span></td></tr>
-          <tr><td>참고</td><td>외국인 코스피 20거래일 순매수(검증 안 된 참고 지표)</td><td><span data-draw="v" data-source="status" data-field="foreign_20d_tn" data-fmt="tn">—</span> · 5일 <span data-draw="v" data-source="status" data-field="foreign_5d_tn" data-fmt="tn">—</span></td><td>참고용</td></tr>
-        </tbody>
-      </table>
+  <section class="ks-steps" id="steps" aria-label="단계별 진행">
+    <div class="ks-card ks-step" id="step-zone">
+      <div class="ks-stephead"><span class="ks-stepno">1</span><h2>바닥권 확인</h2><span data-draw="pill" data-kind="zone" data-source="status" data-field="zone">—</span></div>
+      <div class="ks-cd" data-draw="cdots" data-kind="zone" data-source="status"></div>
+      <p class="ks-need" data-need="zone-yes">주가가 크게 떨어진 뒤라 매수 신호를 기다리는 때입니다. 1년 고점 대비 <b data-draw="v" data-source="status" data-field="dd_from_high" data-fmt="spct">—</b>, 오르는 종목 비율 <b data-draw="v" data-source="status" data-field="pct200" data-fmt="pct">—</b>.</p>
+      <p class="ks-need" data-need="zone-no" hidden>지금은 크게 떨어진 뒤가 아닙니다. 1년 고점 대비 <b data-draw="v" data-source="status" data-field="dd_from_high" data-fmt="spct">—</b>.</p>
+    </div>
+    <div class="ks-card ks-step" id="step-fx">
+      <div class="ks-stephead"><span class="ks-stepno">2</span><h2>첫 매수 신호 <small>절반</small></h2><span data-draw="pill" data-kind="fx" data-source="status" data-field="fx_conds_met">—</span></div>
+      <div class="ks-cd" data-draw="cdots" data-kind="fx" data-source="status"></div>
+      <p class="ks-need ks-done" data-need="fx-open" hidden>조건이 맞아 절반을 사 둔 상태입니다.</p>
+      <p class="ks-need" data-need="fx-zone" hidden>남은 조건: 주가가 크게 떨어진 뒤여야 합니다.</p>
+      <p class="ks-need" data-need="fx-krw" hidden>남은 조건: 원화 값이 최근 6개월 중 가장 약했을 때보다 <b data-draw="c" data-c="fxneed" data-cfmt="pct">—</b> 이상 회복해야 합니다(지금 <b data-draw="v" data-source="status" data-field="krw_strength" data-fmt="pct">—</b>).</p>
+      <p class="ks-need" data-need="fx-ma50" hidden>남은 조건: 코스피가 50일 평균선까지 <b data-draw="v" data-source="status" data-field="gap_to_ma50" data-fmt="spct">—</b> 올라야 합니다.</p>
+    </div>
+    <div class="ks-card ks-step" id="step-core">
+      <div class="ks-stephead"><span class="ks-stepno">3</span><h2>본격 상승 확인 <small>전부</small></h2><span data-draw="pill" data-kind="core" data-source="status" data-field="core_conds_met">—</span></div>
+      <div class="ks-cd" data-draw="cdots" data-kind="core" data-source="status"></div>
+      <p class="ks-need ks-done" data-need="core-on" hidden>두 조건이 모두 맞아 전부 매수 상태입니다.</p>
+      <p class="ks-need" data-need="core-trend" hidden>남은 조건: 코스피가 200일 평균선까지 <b data-draw="v" data-source="status" data-field="gap_to_ma200" data-fmt="spct">—</b> 올라야 합니다.</p>
+      <p class="ks-need" data-need="core-breadth" hidden>남은 조건: 오르는 종목 비율이 <b data-draw="c" data-c="bron" data-cfmt="pct">—</b>까지 <b data-draw="v" data-source="status" data-field="breadth_to_on" data-fmt="pp">—</b> 늘어야 합니다.</p>
+    </div>
+  </section>
+
+  <section class="ks-card" id="gauges">
+    <h2>조건별로 얼마나 남았나</h2>
+    <p class="ks-note">진한 세로선이 기준입니다. 동그라미는 지금 위치이고, 기준선을 넘어가면 그 조건이 맞은 것이라 초록색으로 바뀝니다.</p>
+    <div class="ks-gauges">
+      <div class="ks-g" id="g-krw">
+        <div class="ks-ghead"><span>원화 회복 <small>첫 매수 조건</small></span><span data-draw="ok" data-source="status" data-field="fx_cond_krw">—</span></div>
+        <div class="ks-gauge" data-draw="gauge" data-kind="krw" data-source="status"></div>
+        <p class="ks-gfoot">원화가 6개월 중 가장 약했을 때보다 <b data-draw="v" data-source="status" data-field="krw_strength" data-fmt="pct">—</b> 회복 · 필요 <b data-draw="c" data-c="fxneed" data-cfmt="pct">—</b></p>
+      </div>
+      <div class="ks-g" id="g-ma50">
+        <div class="ks-ghead"><span>코스피 vs 50일 평균선 <small>첫 매수 조건</small></span><span data-draw="ok" data-source="status" data-field="fx_cond_ma50">—</span></div>
+        <div class="ks-gauge" data-draw="gauge" data-kind="ma50" data-source="status"></div>
+        <p class="ks-gfoot">평균선보다 지금 <b data-draw="v" data-source="status" data-field="kospi_vs_ma50" data-fmt="spct">—</b> · 기준선까지 <b data-draw="v" data-source="status" data-field="gap_to_ma50" data-fmt="spct">—</b></p>
+      </div>
+      <div class="ks-g" id="g-ma200">
+        <div class="ks-ghead"><span>코스피 vs 200일 평균선 <small>전부 매수 조건</small></span><span data-draw="ok" data-source="status" data-field="trend_on">—</span></div>
+        <div class="ks-gauge" data-draw="gauge" data-kind="ma200" data-source="status"></div>
+        <p class="ks-gfoot">평균선보다 지금 <b data-draw="v" data-source="status" data-field="kospi_vs_ma200" data-fmt="spct">—</b> · 기준선까지 <b data-draw="v" data-source="status" data-field="gap_to_ma200" data-fmt="spct">—</b></p>
+      </div>
+      <div class="ks-g" id="g-breadth">
+        <div class="ks-ghead"><span>오르는 종목 비율 <small>전부 매수 조건</small></span><span data-draw="ok" data-source="status" data-field="breadth_on">—</span></div>
+        <div class="ks-gauge" data-draw="gauge" data-kind="breadth" data-source="status"></div>
+        <p class="ks-gfoot">자기 200일 평균선 위에 있는 종목 <b data-draw="v" data-source="status" data-field="pct200" data-fmt="pct">—</b> · <b data-draw="c" data-c="bron" data-cfmt="pct">—</b> 이상이면 충족, <b data-draw="c" data-c="broff" data-cfmt="pct">—</b> 이하로 내려가면 다시 꺼짐</p>
+      </div>
+      <div class="ks-g" id="g-warn">
+        <div class="ks-ghead"><span>과열 경고 <small>너무 뜨거운지</small></span><span data-draw="warn" data-source="status" data-field="warn_score">—</span></div>
+        <div class="ks-wdots" data-draw="dots" data-source="status"></div>
+        <p class="ks-gfoot">과열 신호 5개 중 <b data-draw="v" data-source="status" data-field="warn_score" data-fmt="int">—</b>개 켜짐 · <b data-draw="c" data-c="warnth" data-cfmt="int">—</b>개 이상이면 빚내서 투자(레버리지)는 피합니다</p>
+      </div>
     </div>
   </section>
 
   <section class="ks-grid" id="charts">
     <div class="ks-card" id="chart-kospi-card">
-      <h2>코스피와 이동평균, 보유 구간</h2>
-      <p class="ks-note">최근 약 1년. 음영은 규칙상 보유 구간(옅으면 50%, 진하면 100%), 점은 FX 신호가 켜진 날입니다.</p>
-      <p class="ks-legend"><span><i class="ks-sw" data-series="0"></i>코스피</span><span><i class="ks-sw" data-series="1"></i>50일선</span><span><i class="ks-sw" data-series="2"></i>200일선</span><span><i class="ks-sw dot" data-series="3"></i>FX 신호</span></p>
+      <h2>코스피와 평균선</h2>
+      <p class="ks-note">최근 약 1년입니다. 색칠된 구간은 규칙상 주식을 들고 있던 기간(옅으면 절반, 진하면 전부), 점은 첫 매수 신호가 켜진 날입니다.</p>
+      <p class="ks-legend"><span><i class="ks-sw" data-series="0"></i>코스피</span><span><i class="ks-sw" data-series="1"></i>50일 평균선</span><span><i class="ks-sw" data-series="2"></i>200일 평균선</span><span><i class="ks-sw dot" data-series="3"></i>첫 매수 신호</span></p>
       <div class="ks-chart dash-skeleton" id="chart-kospi" data-draw="chart-kospi" data-source="history"></div>
     </div>
     <div class="ks-card" id="chart-breadth-card">
-      <h2>시장 폭: 200일선 위 종목 비율</h2>
-      <p class="ks-note">코스피 보통주 기준, 액면분할을 반영한 가격으로 계산합니다. 점선은 관찰·꺼짐·켜짐 기준입니다.</p>
-      <p class="ks-legend"><span><i class="ks-sw" data-series="0"></i>200일선 위 종목 비율</span></p>
+      <h2>오르는 종목 비율</h2>
+      <p class="ks-note">코스피 종목 중 자기 200일 평균선 위에 있는 종목의 비율입니다. 지수만이 아니라 시장 전체가 살아나는지 봅니다. 점선은 아래부터 바닥권·꺼짐·충족 기준입니다.</p>
+      <p class="ks-legend"><span><i class="ks-sw" data-series="0"></i>오르는 종목 비율</span></p>
       <div class="ks-chart dash-skeleton" id="chart-breadth" data-draw="chart-breadth" data-source="history"></div>
     </div>
     <div class="ks-card" id="chart-fx-card">
-      <h2>원/달러와 FX 기준선</h2>
-      <p class="ks-note">원/달러가 점선(6개월 최고치의 <b data-draw="c" data-c="fx" data-cfmt="ratio">—</b>배) 아래면 원화 강세 조건을 충족합니다. 전 거래일 환율을 씁니다.</p>
-      <p class="ks-legend"><span><i class="ks-sw" data-series="0"></i>원/달러</span><span><i class="ks-sw" data-series="4"></i>FX 기준선</span></p>
+      <h2>원/달러 환율</h2>
+      <p class="ks-note">환율이 점선 아래로 내려오면(원화가 충분히 회복하면) 첫 매수 조건 하나가 맞습니다. 점선은 최근 6개월 최고 환율의 <b data-draw="c" data-c="fx" data-cfmt="ratio">—</b>배입니다.</p>
+      <p class="ks-legend"><span><i class="ks-sw" data-series="0"></i>원/달러</span><span><i class="ks-sw" data-series="4"></i>기준선</span></p>
       <div class="ks-chart dash-skeleton" id="chart-fx" data-draw="chart-fx" data-source="history"></div>
     </div>
   </section>
 
+  <details class="ks-card ks-details" id="checklist">
+    <summary>모든 조건 자세히 보기</summary>
+    <p class="ks-note">각 단계의 정확한 조건과 오늘 값입니다. 기준값은 연구 보고서에서 검증한 값과 같습니다.</p>
+    <div class="ks-tblwrap">
+      <table class="ks-tbl">
+        <thead><tr><th>단계</th><th>조건</th><th>오늘 값</th><th>판정</th></tr></thead>
+        <tbody>
+          <tr><td>① 바닥권</td><td>최근 6개월 안에 1년 고점 대비 <b data-draw="c" data-c="dd" data-cfmt="spct">—</b> 이하, 또는 시장 폭 <b data-draw="c" data-c="zbr" data-cfmt="pct">—</b> 미만</td><td>고점 대비 <span data-draw="v" data-source="status" data-field="dd_from_high" data-fmt="spct">—</span> · 시장 폭 <span data-draw="v" data-source="status" data-field="pct200" data-fmt="pct">—</span></td><td><span data-draw="ok" data-source="status" data-field="zone">—</span></td></tr>
+          <tr><td>② 원화 회복</td><td>원/달러가 6개월 최고치의 <b data-draw="c" data-c="fx" data-cfmt="ratio">—</b>배 이하</td><td><span data-draw="v" data-source="status" data-field="usdkrw" data-fmt="num">—</span> / 최고 <span data-draw="v" data-source="status" data-field="usdkrw_126max" data-fmt="num">—</span> = <span data-draw="v" data-source="status" data-field="fx_ratio" data-fmt="ratio">—</span></td><td><span data-draw="ok" data-source="status" data-field="fx_cond_krw">—</span></td></tr>
+          <tr><td>② 50일 평균선</td><td>코스피 종가가 50일선 위</td><td><span data-draw="v" data-source="status" data-field="kospi" data-fmt="num">—</span> vs <span data-draw="v" data-source="status" data-field="ma50" data-fmt="num">—</span></td><td><span data-draw="ok" data-source="status" data-field="fx_cond_ma50">—</span></td></tr>
+          <tr><td>② 첫 매수</td><td>위 세 조건이 같은 날 충족되면 진입. 200일선 회복 전에는 진입가의 <b data-draw="c" data-c="stop" data-cfmt="ratio">—</b>배에서 손절</td><td>오늘 신호 <span data-draw="ok" data-source="status" data-field="fx_signal_today" data-yes="켜짐" data-no="꺼짐">—</span></td><td><span data-draw="ok" data-source="status" data-field="fx_trade_open" data-yes="보유 중" data-no="없음">—</span></td></tr>
+          <tr><td>③ 200일 평균선</td><td>종가가 200일선 위면 켜짐, 200일선의 <b data-draw="c" data-c="band" data-cfmt="ratio">—</b>배 아래면 꺼짐</td><td><span data-draw="v" data-source="status" data-field="kospi" data-fmt="num">—</span> vs <span data-draw="v" data-source="status" data-field="ma200" data-fmt="num">—</span></td><td><span data-draw="ok" data-source="status" data-field="trend_on" data-yes="켜짐" data-no="꺼짐">—</span></td></tr>
+          <tr><td>③ 오르는 종목</td><td>200일선 위 종목 비율 <b data-draw="c" data-c="bron" data-cfmt="pct">—</b> 이상이면 켜짐, <b data-draw="c" data-c="broff" data-cfmt="pct">—</b> 이하면 꺼짐</td><td><span data-draw="v" data-source="status" data-field="pct200" data-fmt="pct">—</span></td><td><span data-draw="ok" data-source="status" data-field="breadth_on" data-yes="켜짐" data-no="꺼짐">—</span></td></tr>
+          <tr><td>③ 전부 매수</td><td>추세와 시장 폭이 모두 켜짐</td><td>200일선까지 <span data-draw="v" data-source="status" data-field="gap_to_ma200" data-fmt="spct">—</span></td><td><span data-draw="ok" data-source="status" data-field="core_on" data-yes="켜짐" data-no="꺼짐">—</span></td></tr>
+          <tr><td>④ 과열 경고</td><td>경고 <b data-draw="c" data-c="warnmax" data-cfmt="int">—</b>개 중 <b data-draw="c" data-c="warnth" data-cfmt="int">—</b>개 이상이면 레버리지 금지(탐색 단계)</td><td><span data-draw="v" data-source="status" data-field="warn_score" data-fmt="int">—</span>개 켜짐</td><td><span data-draw="warn" data-source="status" data-field="warn_score">—</span></td></tr>
+          <tr><td>참고</td><td>외국인 코스피 20거래일 순매수(검증 안 된 참고 지표)</td><td><span data-draw="v" data-source="status" data-field="foreign_20d_tn" data-fmt="tn">—</span> · 5일 <span data-draw="v" data-source="status" data-field="foreign_5d_tn" data-fmt="tn">—</span></td><td>참고용</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </details>
+
   <section class="ks-card" id="trades">
-    <h2>FX 신호 거래 기록</h2>
-    <p class="ks-note">같은 규칙을 최근 데이터에 다시 적용한 진입·청산 기록입니다.</p>
+    <h2>첫 매수 신호 기록</h2>
+    <p class="ks-note">규칙대로 했다면 언제 사고 언제 팔았는지 보여줍니다.</p>
     <div class="ks-tblwrap">
       <table class="ks-tbl" data-source="trades" data-row-key="entry">
-        <thead><tr><th data-field="entry">진입일</th><th data-field="entry_lvl">진입 지수</th><th data-field="exit">청산일</th><th data-field="exit_lvl">청산 지수</th><th data-field="ret">수익률</th></tr></thead>
+        <thead><tr><th data-field="entry">산 날</th><th data-field="entry_lvl">산 지수</th><th data-field="exit">판 날</th><th data-field="exit_lvl">판 지수</th><th data-field="ret">수익률</th></tr></thead>
         <tbody data-draw="trades"></tbody>
       </table>
     </div>
   </section>
 
   <section class="ks-card" id="rules">
-    <h2>읽는 법과 증거 수준</h2>
+    <h2>이 화면을 믿어도 되나요?</h2>
     <ul class="ks-rules">
-      <li><b>FX 신호</b>는 사전등록한 후보 가운데 진입 판별이 가장 나았습니다. 과거 대세상승을 모두 이 단계에서 잡았지만, 성공률 우위는 약하고 가장 최근 신호는 실패했습니다.</li>
-      <li><b>추세와 시장 폭</b> 결합은 사전등록 기준을 통과한 유일한 보유 규칙입니다. 큰 하락을 크게 줄였지만, 대세상승 초반은 늦게 탑니다.</li>
-      <li>두 규칙을 합친 50%/100% 비중은 결과를 본 뒤 만든 조합이라 앞으로 나오는 신호로 검증해야 합니다.</li>
-      <li>원/달러 최근 값은 공개 피드(야후 기준)로 채우고, 과거 값은 미 연준 기준 환율을 씁니다. 둘 사이에 작은 차이가 있습니다.</li>
-      <li>투자 권유가 아닙니다. 과거 데이터에서 찾은 규칙을 매일 같은 방식으로 계산해 보여줄 뿐입니다.</li>
+      <li>과거 30년 데이터로 시험한 규칙을 매일 같은 방식으로 계산해 보여주는 화면입니다. 미래를 맞히는 기계는 아닙니다.</li>
+      <li><b>첫 매수 신호</b>는 과거 큰 상승장을 모두 초반에 잡았습니다. 하지만 틀린 신호도 절반 가까이 있었습니다. 그래서 절반만 사고, 매수 가격보다 10% 떨어지면 파는 규칙을 붙였습니다.</li>
+      <li><b>전부 매수</b> 규칙은 큰 하락을 피하는 데 가장 좋았습니다. 대신 상승 초반은 늦게 탑니다.</li>
+      <li>두 규칙을 합친 방식은 아직 앞으로의 결과로 검증하는 중입니다.</li>
+      <li>최근 며칠의 환율은 공개 자료로 채워서 공식 환율과 조금 다를 수 있습니다.</li>
+      <li>투자 권유가 아닙니다.</li>
     </ul>
     <p class="ks-note">전체 분석: <a href="https://claude.ai/artifact/BFfH99jFhWu9BfjYQve5pn" target="_blank" rel="noopener">코스피 사이클 포착 지도</a></p>
   </section>
@@ -148,7 +232,7 @@ table.ks-tbl{width:100%;border-collapse:collapse;font-size:var(--cds-font-size-c
 <script>
 window.KS = (function () {
   const nf = new Intl.NumberFormat('ko-KR', {maximumFractionDigits: 2});
-  const C = {dd: -0.20, zbr: 0.20, fx: 0.95, stop: 0.90, band: 0.97, bron: 0.60, broff: 0.40, warnmax: 5, warnth: 3};
+  const C = {dd: -0.20, zbr: 0.20, fx: 0.95, fxneed: 0.05, stop: 0.90, band: 0.97, bron: 0.60, broff: 0.40, warnmax: 5, warnth: 3, mamin: -0.20, mamax: 0.10, krwmax: 0.25};
   const f = {
     num: (v) => nf.format(Number(v)),
     pct: (v) => (Number(v) * 100).toFixed(1) + '%',
@@ -157,6 +241,7 @@ window.KS = (function () {
     pos: (v) => Math.round(Number(v) * 100) + '%',
     tn: (v) => (Number(v) > 0 ? '+' : '') + Number(v).toFixed(1) + '조 원',
     int: (v) => String(Math.round(Number(v))),
+    pp: (v) => (Number(v) > 0 ? '+' : '') + (Number(v) * 100).toFixed(1) + '%p',
     date: (v) => String(v)
   };
   const row = () => {
@@ -191,12 +276,91 @@ dash.draw('warn', (el) => {
   el.classList.toggle('ks-no', v < KS.C.warnth);
   el.textContent = Number.isNaN(v) ? '—' : v >= KS.C.warnth ? '레버리지 금지' : '정상';
 });
+dash.draw('pill', (el) => {
+  const r = KS.row();
+  el.className = 'ks-pill';
+  if (!r) { el.textContent = '—'; return; }
+  const k = el.dataset.kind;
+  let label = '', cls = 'none';
+  if (k === 'zone') { const z = Number(r.zone) === 1; label = z ? '충족' : '미충족'; cls = z ? 'done' : 'none'; }
+  if (k === 'fx') {
+    const n = Number(r.fx_conds_met);
+    if (Number(r.fx_trade_open) === 1) { label = '보유 중'; cls = 'done'; }
+    else { label = n + '/3 충족'; cls = n === 0 ? 'none' : 'part'; }
+  }
+  if (k === 'core') {
+    const n = Number(r.core_conds_met);
+    if (Number(r.core_on) === 1) { label = '보유 중'; cls = 'done'; }
+    else { label = n + '/2 충족'; cls = n === 0 ? 'none' : 'part'; }
+  }
+  el.classList.add(cls);
+  el.textContent = label;
+});
+dash.draw('cdots', (el) => {
+  const r = KS.row();
+  el.replaceChildren();
+  if (!r) return;
+  const keys = {zone: ['zone'], fx: ['zone', 'fx_cond_krw', 'fx_cond_ma50'], core: ['trend_on', 'breadth_on']}[el.dataset.kind] || [];
+  const names = {zone: '바닥권', fx_cond_krw: '원화 회복', fx_cond_ma50: '50일 평균선 위', trend_on: '200일 평균선 위', breadth_on: '오르는 종목 비율'};
+  keys.forEach((k) => {
+    const i = document.createElement('i');
+    const on = Number(r[k]) === 1;
+    if (on) i.className = 'on';
+    i.title = names[k] + (on ? ' 충족' : ' 미충족');
+    i.setAttribute('aria-label', i.title);
+    el.append(i);
+  });
+});
+dash.draw('gauge', (el) => {
+  const r = KS.row();
+  el.replaceChildren();
+  if (!r) return;
+  const C = KS.C, k = el.dataset.kind;
+  let lo = 0, hi = 1, val = 0, marks = [], met = false;
+  if (k === 'krw') { hi = C.krwmax; val = Number(r.krw_strength); marks = [{v: C.fxneed, main: true}]; met = Number(r.fx_cond_krw) === 1; }
+  if (k === 'ma50') { lo = C.mamin; hi = C.mamax; val = Number(r.kospi_vs_ma50); marks = [{v: 0, main: true}]; met = Number(r.fx_cond_ma50) === 1; }
+  if (k === 'ma200') { lo = C.mamin; hi = C.mamax; val = Number(r.kospi_vs_ma200); marks = [{v: 0, main: true}]; met = Number(r.trend_on) === 1; }
+  if (k === 'breadth') { val = Number(r.pct200); marks = [{v: C.zbr}, {v: C.broff}, {v: C.bron, main: true}]; met = Number(r.breadth_on) === 1; }
+  if (!Number.isFinite(val)) return;
+  const pos = (v) => Math.max(0, Math.min(1, (v - lo) / (hi - lo))) * 100;
+  const track = document.createElement('div'); track.className = 'ks-track';
+  const fill = document.createElement('div'); fill.className = 'ks-fill' + (met ? ' met' : ''); fill.style.width = pos(val) + '%';
+  track.append(fill);
+  marks.forEach((m) => { const t = document.createElement('div'); t.className = 'ks-tick' + (m.main ? ' main' : ''); t.style.left = pos(m.v) + '%'; track.append(t); });
+  const dot = document.createElement('div'); dot.className = 'ks-now' + (met ? ' met' : ''); dot.style.left = pos(val) + '%';
+  track.append(dot);
+  el.append(track);
+});
+dash.draw('dots', (el) => {
+  const r = KS.row();
+  el.replaceChildren();
+  if (!r) return;
+  const n = Number(r.warn_score);
+  for (let i = 1; i <= KS.C.warnmax; i++) {
+    const d = document.createElement('i');
+    if (i <= n) d.classList.add('on');
+    if (i >= KS.C.warnth) d.classList.add('hot');
+    el.append(d);
+    if (i === KS.C.warnth - 1) { const s = document.createElement('span'); s.className = 'sep'; el.append(s); }
+  }
+});
 dash.onData(() => {
   const r = KS.row();
   const pos = r ? Number(r.position) : null;
   const variant = !r ? 'cash-zone' : pos >= 1 ? 'core' : pos > 0 ? 'fx' : Number(r.zone) === 1 ? 'cash-zone' : 'cash-nozone';
   document.querySelectorAll('[data-variant]').forEach((p) => { p.hidden = p.dataset.variant !== variant; });
+  const st = pos === null ? '0' : pos >= 1 ? '100' : pos > 0 ? '50' : '0';
+  document.querySelectorAll('[data-state]').forEach((p) => { p.hidden = p.dataset.state !== st; });
   document.querySelectorAll('.ks-lamp').forEach((l) => { l.classList.toggle('on', pos !== null && Math.abs(Number(l.dataset.level) - pos) < 1e-9); });
+  const f = (k) => (r ? Number(r[k]) : NaN);
+  const fxOpen = f('fx_trade_open') === 1, coreOn = f('core_on') === 1;
+  const show = {
+    'zone-yes': f('zone') === 1, 'zone-no': f('zone') === 0,
+    'fx-open': fxOpen, 'fx-zone': !fxOpen && f('zone') === 0, 'fx-krw': !fxOpen && f('fx_cond_krw') === 0, 'fx-ma50': !fxOpen && f('fx_cond_ma50') === 0,
+    'core-on': coreOn, 'core-trend': !coreOn && f('trend_on') === 0, 'core-breadth': !coreOn && f('breadth_on') === 0
+  };
+  document.querySelectorAll('[data-need]').forEach((p) => { p.hidden = !show[p.dataset.need]; });
+  document.querySelectorAll('.ks').forEach((root) => { if (dash.colors && dash.colors[0]) root.style.setProperty('--ks-acc', dash.colors[0]); });
   const cols = [dash.colors[0], dash.colors[1], dash.colors[2], dash.colors[3], dash.colors[1]];
   document.querySelectorAll('.ks-sw[data-series]').forEach((s) => { s.style.background = cols[Number(s.dataset.series)] || ''; });
 });
@@ -298,22 +462,22 @@ dash.draw('chart-kospi', (el) => {
   if (h.status !== 'ok') { KSfail(el, h.status); return; }
   const nf = KS.nf;
   KSline(el, h.rows, {
-    label: '코스피와 50일선, 200일선',
+    label: '코스피와 50일, 200일 평균선',
     series: [{key: 'kospi', color: dash.colors[0]}, {key: 'ma50', color: dash.colors[1], w: 1.5}, {key: 'ma200', color: dash.colors[2], w: 1.5}],
     shade: 'pos', marks: 'fxsig', yfmt: (v) => nf.format(v),
-    tip: (r) => [['코스피', r.kospi === null ? '—' : nf.format(r.kospi), dash.colors[0]], ['50일선', r.ma50 === null ? '—' : nf.format(Math.round(r.ma50)), dash.colors[1]],
-      ['200일선', r.ma200 === null ? '—' : nf.format(Math.round(r.ma200)), dash.colors[2]], ['비중', Math.round(r.pos * 100) + '%', null]]
+    tip: (r) => [['코스피', r.kospi === null ? '—' : nf.format(r.kospi), dash.colors[0]], ['50일 평균선', r.ma50 === null ? '—' : nf.format(Math.round(r.ma50)), dash.colors[1]],
+      ['200일 평균선', r.ma200 === null ? '—' : nf.format(Math.round(r.ma200)), dash.colors[2]], ['비중', Math.round(r.pos * 100) + '%', null]]
   });
 });
 dash.draw('chart-breadth', (el) => {
   const h = KSrows();
   if (h.status !== 'ok') { KSfail(el, h.status); return; }
   KSline(el, h.rows, {
-    label: '200일선 위 종목 비율',
+    label: '오르는 종목 비율',
     series: [{key: 'pct200', color: dash.colors[0]}],
     refs: [{y: KS.C.zbr * 100}, {y: KS.C.broff * 100}, {y: KS.C.bron * 100}],
     yfmt: (v) => v + '%',
-    tip: (r) => [['200일선 위 종목', r.pct200 === null ? '—' : r.pct200.toFixed(1) + '%', null]]
+    tip: (r) => [['오르는 종목', r.pct200 === null ? '—' : r.pct200.toFixed(1) + '%', null]]
   });
 });
 dash.draw('chart-fx', (el) => {
@@ -321,10 +485,10 @@ dash.draw('chart-fx', (el) => {
   if (h.status !== 'ok') { KSfail(el, h.status); return; }
   const nf = KS.nf;
   KSline(el, h.rows, {
-    label: '원/달러와 FX 기준선',
+    label: '원/달러 환율과 기준선',
     series: [{key: 'fx', color: dash.colors[0]}, {key: 'fx_th', color: dash.colors[1], w: 1.5, dash: '5 4'}],
     yfmt: (v) => nf.format(v),
-    tip: (r) => [['원/달러', r.fx === null ? '—' : nf.format(r.fx), dash.colors[0]], ['FX 기준선', r.fx_th === null ? '—' : nf.format(Math.round(r.fx_th)), dash.colors[1]]]
+    tip: (r) => [['원/달러', r.fx === null ? '—' : nf.format(r.fx), dash.colors[0]], ['기준선', r.fx_th === null ? '—' : nf.format(Math.round(r.fx_th)), dash.colors[1]]]
   });
 });
 dash.draw('trades', (tb) => {
